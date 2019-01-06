@@ -17,6 +17,7 @@ namespace multirun
 {
 	public partial class Form1 : Form
 	{
+		//==============================================================
 		private const int SW_MAXIMIZE = 3;
 		private const int SW_MINIMIZE = 6;
 
@@ -24,6 +25,35 @@ namespace multirun
 		[return: MarshalAs(UnmanagedType.Bool)]
 		static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
+
+		//==============================================================
+		private const uint WM_CLOSE = 0x0010;
+		[DllImport("user32.dll", CharSet = CharSet.Auto)]
+		static extern IntPtr PostMessage(IntPtr hWnd, uint Msg, int wParam, int lParam);
+
+		//-----------------
+		//private const uint GW_OWNER = 4;
+		//[DllImport("user32.dll", SetLastError = true)]
+		//private static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
+
+		//-----------------
+		delegate bool EnumThreadDelegate(IntPtr hWnd, IntPtr lParam);
+
+		[DllImport("user32.dll")]
+		static extern bool EnumThreadWindows(int dwThreadId, EnumThreadDelegate lpfn, IntPtr lParam);
+
+		static IEnumerable<IntPtr> EnumerateProcessWindowHandles(int processId)
+		{
+			var handles = new List<IntPtr>();
+
+			foreach (ProcessThread thread in Process.GetProcessById(processId).Threads)
+				EnumThreadWindows(thread.Id,
+						(hWnd, lParam) => { handles.Add(hWnd); return true; }, IntPtr.Zero);
+
+			return handles;
+		}
+
+		//==============================================================
 		public class ListItem
 		{
 			public bool Enabled = true;
@@ -31,17 +61,19 @@ namespace multirun
 			public bool Minimize = false;
 			public Process Proc = null;
 			public int Timewait = -1;
+			public int Priority = 3;
 
 			public ListItem(string file)
 			{
 				this.File = file;
 			}
-			public ListItem(string file, bool minimize, int timewait, bool enabled)
+			public ListItem(string file, bool minimize, int timewait, bool enabled, int priority)
 			{
 				this.File = file;
 				this.Minimize = minimize;
 				this.Timewait = timewait;
 				this.Enabled = enabled;
+				this.Priority = priority;
 			}
 
 			public override string ToString() { return File; }
@@ -68,6 +100,13 @@ namespace multirun
 			lbx1.CheckOnClick = false;
 			nud1.Maximum = decimal.MaxValue;
 			nud1.Minimum = -1;
+			cmbbx1.Items.Add("Realtime: 24");
+			cmbbx1.Items.Add("High: 13");
+			cmbbx1.Items.Add("Above Normal: 10");
+			cmbbx1.Items.Add("Normal: 8");
+			cmbbx1.Items.Add("Below Normal: 6");
+			cmbbx1.Items.Add("Idle: 4");
+			cmbbx1.SelectedIndex = 3;
 
 			ConfigLoad();
 		}
@@ -84,7 +123,8 @@ namespace multirun
 					level1Element.Attribute("file").Value.ToString(),
 					bool.Parse(level1Element.Attribute("minimize").Value.ToString()),
 					int.Parse(level1Element.Attribute("timewait").Value.ToString()),
-					bool.Parse(level1Element.Attribute("enabled").Value.ToString())
+					bool.Parse(level1Element.Attribute("enabled").Value.ToString()),
+					int.Parse(level1Element.Attribute("priority").Value.ToString())
 					), bool.Parse(level1Element.Attribute("enabled").Value.ToString()));
 			}
 		}
@@ -125,6 +165,10 @@ namespace multirun
 				itemAttribute.Value = item.Timewait.ToString();
 				itemNode.Attributes.Append(itemAttribute);
 
+				itemAttribute = doc.CreateAttribute("priority");
+				itemAttribute.Value = item.Priority.ToString();
+				itemNode.Attributes.Append(itemAttribute);
+
 				itemsNode.AppendChild(itemNode);
 			}
 
@@ -148,13 +192,85 @@ namespace multirun
 			for (int i = lbx1.Items.Count - 1; i >= 0; i--)
 			{
 				ListItem item = (ListItem)lbx1.Items[i];
-				if (item.Proc != null && !item.Proc.HasExited)
+				if (item.Enabled)
 				{
-					try { item.Proc.CloseMainWindow(); }
-					catch { }
+					Process p = GetActiveProcess(item);
+					if (p != null)
+					{
+						if (p.MainWindowHandle != IntPtr.Zero)
+						{
+							try { p.CloseMainWindow(); }
+							catch { }
+						}
+						else
+						{
+							foreach (var handle in EnumerateProcessWindowHandles(p.Id))
+							{
+								PostMessage(handle, WM_CLOSE, 0, 0);
+								break; // assuming main window is the first one
+							}
+						}
+						Thread.Sleep(100);
+					}
 				}
 			}
 			this.Close();
+		}
+
+		//==============================================================
+		private Process GetActiveProcess(ListItem item)
+		{
+			Process ret = null;
+
+			if (item.Proc != null)
+			{
+				item.Proc.Refresh();
+				if (!item.Proc.HasExited)
+				{
+					ret = item.Proc;
+				}
+				else
+				{
+					string exe = GetExecutable(item.ToString());
+
+					Process[] processes = Process.GetProcesses();
+					foreach (Process proc in processes)
+					{
+						string file = null;
+						try { file = proc.MainModule.FileName; }
+						catch { }
+						if (file != null && string.Equals(file, exe, StringComparison.OrdinalIgnoreCase))
+						{
+							ret = proc;
+							break;
+						}
+					}
+				}
+			}
+			return ret;
+		}
+
+		//==============================================================
+		private string GetExecutable(string link)
+		{
+			string file = link.ToString();
+			string path = "";
+
+			if (file.Substring(file.Length - 4).ToLower() == @".lnk")
+			{
+				if (File.Exists(file))
+				{
+					string name, descr, workdir, args; // not used
+					string err = GetShortcutInfo(file, out name, out path, out descr, out workdir, out args);
+					if (err.Length > 0)
+						MessageBox.Show(err);
+				}
+			}
+			else
+			{
+				path = file;
+			}
+			return path;
 		}
 
 		//==============================================================
@@ -163,6 +279,8 @@ namespace multirun
 			string file = item.ToString();
 			string name, descr; // not used
 			string path, workdir, args;
+
+			if (!File.Exists(file)) return;
 
 			if (file.Substring(file.Length - 4).ToLower() == @".lnk")
 			{
@@ -176,6 +294,8 @@ namespace multirun
 				workdir = file.Substring(0, file.LastIndexOf("\\"));
 				args = "";
 			}
+
+			if (!File.Exists(path)) return;
 
 			Process proc = new Process();
 			item.Proc = proc;
@@ -191,15 +311,16 @@ namespace multirun
 					proc.WaitForInputIdle(item.Timewait);
 			}
 			catch { }
-			Thread.Sleep(100);
+			Thread.Sleep(200);
 
+			proc.Refresh();
 			if (!proc.HasExited)
 			{
-				if (item.Minimize)
-				{
-					try { ShowWindow(proc.MainWindowHandle, SW_MINIMIZE); }
-					catch { }
-				}
+				try { proc.PriorityClass = PriorityConvert(item.Priority); }
+				catch { }
+
+				if (item.Minimize && proc.MainWindowHandle != IntPtr.Zero)
+					ShowWindow(proc.MainWindowHandle, SW_MINIMIZE);
 			}
 		}
 
@@ -254,6 +375,28 @@ namespace multirun
 			catch (Exception ex)
 			{
 				return ex.Message;
+			}
+		}
+
+		//==============================================================
+		private ProcessPriorityClass PriorityConvert(int priority)
+		{
+			switch (priority)
+			{
+				case 0:
+					return ProcessPriorityClass.RealTime;
+				case 1:
+					return ProcessPriorityClass.High;
+				case 2:
+					return ProcessPriorityClass.AboveNormal;
+				case 3:
+					return ProcessPriorityClass.Normal;
+				case 4:
+					return ProcessPriorityClass.BelowNormal;
+				case 5:
+					return ProcessPriorityClass.Idle;
+				default:
+					return ProcessPriorityClass.Normal;
 			}
 		}
 
@@ -339,6 +482,8 @@ namespace multirun
 				chbx1.Checked = ((ListItem)lbx1.SelectedItem).Minimize;
 				nud1.Enabled = true;
 				nud1.Value = ((ListItem)lbx1.SelectedItem).Timewait;
+				cmbbx1.Enabled = true;
+				cmbbx1.SelectedIndex = ((ListItem)lbx1.SelectedItem).Priority;
 			}
 			else
 			{
@@ -346,6 +491,8 @@ namespace multirun
 				chbx1.Enabled = false;
 				nud1.Value = 0;
 				nud1.Enabled = false;
+				cmbbx1.SelectedIndex = 3;
+				cmbbx1.Enabled = false;
 			}
 		}
 
@@ -368,10 +515,19 @@ namespace multirun
 				((ListItem)lbx1.SelectedItem).Timewait = (int)nud1.Value;
 		}
 
+		//==============================================================
 		private void lbx1_ItemCheck(object sender, ItemCheckEventArgs e)
 		{
 			((ListItem)lbx1.Items[e.Index]).Enabled = (e.NewValue == CheckState.Checked);
 		}
+
+		//==============================================================
+		private void cmbbx1_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			if (lbx1.SelectedItem != null)
+				((ListItem)lbx1.SelectedItem).Priority = cmbbx1.SelectedIndex;
+		}
+
 
 	}
 }
