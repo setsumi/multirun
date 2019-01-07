@@ -12,6 +12,7 @@ using System.Runtime.InteropServices;
 using System.Xml;
 using System.Xml.Linq;
 using System.IO;
+using System.Reflection;
 
 namespace multirun
 {
@@ -80,7 +81,9 @@ namespace multirun
 		}
 
 		//==============================================================
-		private readonly string configfile = @"multirun.xml";
+		private string appfolder;
+		private string configfile;
+		private string profilefile;
 
 		private bool mouse_drag = false;
 		private bool mouse_down = false;
@@ -108,7 +111,22 @@ namespace multirun
 			cmbbx1.Items.Add("Idle: 4");
 			cmbbx1.SelectedIndex = 3;
 
+			appfolder = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + Path.DirectorySeparatorChar;
+			configfile = appfolder + "multirun.xml";
+			profilefile = appfolder + "Default.mlr";
+			UpdateTitle();
+
+			openFileDialog1.InitialDirectory = appfolder;
+			saveFileDialog1.InitialDirectory = appfolder;
+
 			ConfigLoad();
+			ProfileLoad(profilefile);
+		}
+
+		//==============================================================
+		private void UpdateTitle()
+		{
+			this.Text = "Multirun - " + Path.GetFileNameWithoutExtension(profilefile);
 		}
 
 		//==============================================================
@@ -116,8 +134,25 @@ namespace multirun
 		{
 			if (!File.Exists(configfile)) return;
 
-			StringBuilder result = new StringBuilder();
-			foreach (XElement level1Element in XElement.Load(configfile).Elements("item"))
+			XElement level1Element = XElement.Load(configfile).Element("config");
+			profilefile = level1Element.Attribute("profile").Value;
+		}
+
+		//==============================================================
+		private void ProfileLoad(string file)
+		{
+			if (!File.Exists(file)) return;
+
+			lbx1.ClearSelected();
+			foreach (ListItem item in lbx1.Items)
+				if (item.Proc != null)
+				{
+					item.Proc.Close();
+					item.Proc.Dispose();
+				}
+			lbx1.Items.Clear();
+
+			foreach (XElement level1Element in XElement.Load(file).Elements("item"))
 			{
 				lbx1.Items.Add(new ListItem(
 					level1Element.Attribute("file").Value.ToString(),
@@ -127,16 +162,41 @@ namespace multirun
 					int.Parse(level1Element.Attribute("priority").Value.ToString())
 					), bool.Parse(level1Element.Attribute("enabled").Value.ToString()));
 			}
+
+			profilefile = file;
+			UpdateTitle();
 		}
 
 		//==============================================================
 		private void Form1_FormClosing(object sender, FormClosingEventArgs e)
 		{
 			ConfigSave();
+			ProfileSave(profilefile);
 		}
 
 		//==============================================================
 		private void ConfigSave()
+		{
+			XmlDocument doc = new XmlDocument();
+			XmlNode docNode = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
+			doc.AppendChild(docNode);
+
+			XmlNode rootNode = doc.CreateElement("root");
+			doc.AppendChild(rootNode);
+
+			XmlNode configNode = doc.CreateElement("config");
+
+			XmlAttribute optionAttribute = doc.CreateAttribute("profile");
+			optionAttribute.Value = profilefile;
+			configNode.Attributes.Append(optionAttribute);
+
+			rootNode.AppendChild(configNode);
+
+			doc.Save(configfile);
+		}
+
+		//==============================================================
+		private void ProfileSave(string file)
 		{
 			XmlDocument doc = new XmlDocument();
 			XmlNode docNode = doc.CreateXmlDeclaration("1.0", "UTF-8", null);
@@ -172,7 +232,9 @@ namespace multirun
 				itemsNode.AppendChild(itemNode);
 			}
 
-			doc.Save(configfile);
+			doc.Save(file);
+			profilefile = file;
+			UpdateTitle();
 		}
 
 		//==============================================================
@@ -242,6 +304,11 @@ namespace multirun
 						if (file != null && string.Equals(file, exe, StringComparison.OrdinalIgnoreCase))
 						{
 							ret = proc;
+							// cleanup previous process
+							item.Proc.Close();
+							item.Proc.Dispose();
+							item.Proc = proc;
+
 							break;
 						}
 					}
@@ -297,6 +364,11 @@ namespace multirun
 
 			if (!File.Exists(path)) return;
 
+			if (item.Proc != null)
+			{
+				item.Proc.Close();
+				item.Proc.Dispose();
+			}
 			Process proc = new Process();
 			item.Proc = proc;
 			proc.StartInfo.FileName = path;
@@ -528,6 +600,41 @@ namespace multirun
 				((ListItem)lbx1.SelectedItem).Priority = cmbbx1.SelectedIndex;
 		}
 
+		//==============================================================
+		private void openToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			if (openFileDialog1.ShowDialog() == DialogResult.OK)
+			{
+				ProfileLoad(openFileDialog1.FileName);
+			}
+		}
+
+		private void saveToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			ProfileSave(profilefile);
+		}
+
+		private void saveasToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			if (saveFileDialog1.ShowDialog() == DialogResult.OK)
+			{
+				ProfileSave(saveFileDialog1.FileName);
+			}
+		}
+
+		private void exitToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			this.Close();
+		}
+
+		private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
+			FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
+			MessageBox.Show("Multirun v" + fvi.FileVersion, "About");
+		}
+
+		//==============================================================
 
 	}
 }
