@@ -33,9 +33,24 @@ namespace multirun
 		static extern IntPtr PostMessage(IntPtr hWnd, uint Msg, int wParam, int lParam);
 
 		//-----------------
-		//private const uint GW_OWNER = 4;
-		//[DllImport("user32.dll", SetLastError = true)]
-		//private static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
+		private enum GWL : int
+		{
+			GWL_WNDPROC = (-4),
+			GWL_HINSTANCE = (-6),
+			GWL_HWNDPARENT = (-8),
+			GWL_STYLE = (-16),
+			GWL_EXSTYLE = (-20),
+			GWL_USERDATA = (-21),
+			GWL_ID = (-12)
+		}
+		private enum WindowStyles : uint
+		{
+			WS_POPUP = 0x80000000,
+			WS_CHILD = 0x40000000,
+			WS_OVERLAPPED = 0x0
+		}
+		[DllImport("user32.dll")]
+		static extern IntPtr GetWindowLong(IntPtr hWnd, int nIndex);
 
 		//-----------------
 		delegate bool EnumThreadDelegate(IntPtr hWnd, IntPtr lParam);
@@ -259,20 +274,33 @@ namespace multirun
 					Process p = GetActiveProcess(item);
 					if (p != null)
 					{
+						IntPtr hmain = IntPtr.Zero;
 						if (p.MainWindowHandle != IntPtr.Zero)
 						{
+							hmain = p.MainWindowHandle;
 							try { p.CloseMainWindow(); }
 							catch { }
 						}
-						else
+						if (hmain == IntPtr.Zero || !p.WaitForExit(1000))
 						{
 							foreach (var handle in EnumerateProcessWindowHandles(p.Id))
 							{
-								PostMessage(handle, WM_CLOSE, 0, 0);
-								break; // assuming main window is the first one
+								IntPtr style = GetWindowLong(handle, (int)GWL.GWL_STYLE);
+								if (((uint)style & (uint)WindowStyles.WS_POPUP) != 0)
+								{
+								}
+								else if (((uint)style & (uint)WindowStyles.WS_CHILD) != 0)
+								{
+								}
+								else // WS_OVERLAPPED
+								{
+									// close all overlapped windows
+									if (handle != hmain)
+										PostMessage(handle, WM_CLOSE, 0, 0);
+								}
 							}
 						}
-						Thread.Sleep(100);
+						Thread.Sleep(50);
 					}
 				}
 			}
