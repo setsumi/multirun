@@ -78,18 +78,20 @@ namespace multirun
 			public Process Proc = null;
 			public int Timewait = -1;
 			public int Priority = 3;
+			public bool Waitstart = true;
 
 			public ListItem(string file)
 			{
 				this.File = file;
 			}
-			public ListItem(string file, bool minimize, int timewait, bool enabled, int priority)
+			public ListItem(string file, bool minimize, int timewait, bool enabled, int priority, bool waitstart)
 			{
 				this.File = file;
 				this.Minimize = minimize;
 				this.Timewait = timewait;
 				this.Enabled = enabled;
 				this.Priority = priority;
+				this.Waitstart = waitstart;
 			}
 
 			public override string ToString() { return File; }
@@ -107,15 +109,18 @@ namespace multirun
 		public Form1()
 		{
 			InitializeComponent();
-
-			lbx1.AllowDrop = true;
 		}
 
 		//==============================================================
 		private void Form1_Load(object sender, EventArgs e)
 		{
 			this.AcceptButton = button1;
+			this.ActiveControl = lbx1;
+
+			lbx1.AllowDrop = true;
+			lbx2.AllowDrop = true;
 			lbx1.CheckOnClick = false;
+			lbx2.CheckOnClick = false;
 			nud1.Maximum = decimal.MaxValue;
 			nud1.Minimum = -1;
 			cmbbx1.Items.Add("Realtime: 24");
@@ -158,28 +163,34 @@ namespace multirun
 		{
 			if (!File.Exists(file)) return;
 
-			lbx1.ClearSelected();
-			foreach (ListItem item in lbx1.Items)
+			ProfileLoadList(file, lbx1, "item");
+			ProfileLoadList(file, lbx2, "itemclose");
+
+			profilefile = file;
+			UpdateTitle();
+		}
+		private void ProfileLoadList(string file, CheckedListBox listbox, string element)
+		{
+			listbox.ClearSelected();
+			foreach (ListItem item in listbox.Items)
 				if (item.Proc != null)
 				{
 					item.Proc.Close();
 					item.Proc.Dispose();
 				}
-			lbx1.Items.Clear();
+			listbox.Items.Clear();
 
-			foreach (XElement level1Element in XElement.Load(file).Elements("item"))
+			foreach (XElement level1Element in XElement.Load(file).Elements(element))
 			{
-				lbx1.Items.Add(new ListItem(
+				listbox.Items.Add(new ListItem(
 					level1Element.Attribute("file").Value.ToString(),
 					bool.Parse(level1Element.Attribute("minimize").Value.ToString()),
 					int.Parse(level1Element.Attribute("timewait").Value.ToString()),
 					bool.Parse(level1Element.Attribute("enabled").Value.ToString()),
-					int.Parse(level1Element.Attribute("priority").Value.ToString())
+					int.Parse(level1Element.Attribute("priority").Value.ToString()),
+					bool.Parse(level1Element.Attribute("waitstart").Value.ToString())
 					), bool.Parse(level1Element.Attribute("enabled").Value.ToString()));
 			}
-
-			profilefile = file;
-			UpdateTitle();
 		}
 
 		//==============================================================
@@ -222,34 +233,46 @@ namespace multirun
 
 			foreach (ListItem item in lbx1.Items)
 			{
-				XmlNode itemNode = doc.CreateElement("item");
-
-				XmlAttribute itemAttribute = doc.CreateAttribute("enabled");
-				itemAttribute.Value = item.Enabled.ToString();
-				itemNode.Attributes.Append(itemAttribute);
-
-				itemAttribute = doc.CreateAttribute("file");
-				itemAttribute.Value = item.ToString();
-				itemNode.Attributes.Append(itemAttribute);
-
-				itemAttribute = doc.CreateAttribute("minimize");
-				itemAttribute.Value = item.Minimize.ToString();
-				itemNode.Attributes.Append(itemAttribute);
-
-				itemAttribute = doc.CreateAttribute("timewait");
-				itemAttribute.Value = item.Timewait.ToString();
-				itemNode.Attributes.Append(itemAttribute);
-
-				itemAttribute = doc.CreateAttribute("priority");
-				itemAttribute.Value = item.Priority.ToString();
-				itemNode.Attributes.Append(itemAttribute);
-
-				itemsNode.AppendChild(itemNode);
+				itemsNode.AppendChild(ProfileSaveNode(item, doc, "item"));
+			}
+			foreach (ListItem item in lbx2.Items)
+			{
+				itemsNode.AppendChild(ProfileSaveNode(item, doc, "itemclose"));
 			}
 
 			doc.Save(file);
 			profilefile = file;
 			UpdateTitle();
+		}
+		private XmlNode ProfileSaveNode(ListItem item, XmlDocument doc, string element)
+		{
+			XmlNode itemNode = doc.CreateElement(element);
+
+			XmlAttribute itemAttribute = doc.CreateAttribute("enabled");
+			itemAttribute.Value = item.Enabled.ToString();
+			itemNode.Attributes.Append(itemAttribute);
+
+			itemAttribute = doc.CreateAttribute("file");
+			itemAttribute.Value = item.ToString();
+			itemNode.Attributes.Append(itemAttribute);
+
+			itemAttribute = doc.CreateAttribute("minimize");
+			itemAttribute.Value = item.Minimize.ToString();
+			itemNode.Attributes.Append(itemAttribute);
+
+			itemAttribute = doc.CreateAttribute("waitstart");
+			itemAttribute.Value = item.Waitstart.ToString();
+			itemNode.Attributes.Append(itemAttribute);
+
+			itemAttribute = doc.CreateAttribute("timewait");
+			itemAttribute.Value = item.Timewait.ToString();
+			itemNode.Attributes.Append(itemAttribute);
+
+			itemAttribute = doc.CreateAttribute("priority");
+			itemAttribute.Value = item.Priority.ToString();
+			itemNode.Attributes.Append(itemAttribute);
+
+			return itemNode;
 		}
 
 		//==============================================================
@@ -266,6 +289,7 @@ namespace multirun
 		//==============================================================
 		private void button2_Click(object sender, EventArgs e)
 		{
+			// close running tasks in reverse order
 			for (int i = lbx1.Items.Count - 1; i >= 0; i--)
 			{
 				ListItem item = (ListItem)lbx1.Items[i];
@@ -300,10 +324,18 @@ namespace multirun
 								}
 							}
 						}
+						p.Close();
+						p.Dispose();
 						Thread.Sleep(50);
 					}
 				}
 			}
+
+			// run on-close tasks
+			foreach (ListItem item in lbx2.Items)
+				if (item.Enabled)
+					RunIt(item);
+
 			this.Close();
 		}
 
@@ -406,9 +438,19 @@ namespace multirun
 			try
 			{
 				if (item.Timewait < 0)
-					proc.WaitForInputIdle();
+				{
+					if (item.Waitstart)
+						proc.WaitForInputIdle();
+					else
+						proc.WaitForExit();
+				}
 				else
-					proc.WaitForInputIdle(item.Timewait);
+				{
+					if (item.Waitstart)
+						proc.WaitForInputIdle(item.Timewait);
+					else
+						proc.WaitForExit(item.Timewait);
+				}
 			}
 			catch { }
 			Thread.Sleep(200);
@@ -508,14 +550,15 @@ namespace multirun
 		//==============================================================
 		private void lbx1_MouseMove(object sender, MouseEventArgs e)
 		{
+			CheckedListBox listbox = (CheckedListBox)sender;
 			if (mouse_down && !mouse_drag)
 			{
 				mouse_drag = true;
 
-				int ix = lbx1.IndexFromPoint(e.Location);
+				int ix = listbox.IndexFromPoint(e.Location);
 				if (ix != -1)
 				{
-					lbx1.DoDragDrop(ix.ToString(), DragDropEffects.Move);
+					listbox.DoDragDrop(ix.ToString(), DragDropEffects.Move);
 				}
 			}
 		}
@@ -523,19 +566,20 @@ namespace multirun
 		//==============================================================
 		private void lbx1_DragDrop(object sender, DragEventArgs e)
 		{
+			CheckedListBox listbox = (CheckedListBox)sender;
 			mouse_down = false;
 			mouse_drag = false;
 
 			if (e.Data.GetDataPresent(DataFormats.Text))
 			{
 				int dix = Convert.ToInt32(e.Data.GetData(DataFormats.Text));//changed this line
-				int ix = lbx1.IndexFromPoint(lbx1.PointToClient(new Point(e.X, e.Y)));
+				int ix = listbox.IndexFromPoint(listbox.PointToClient(new Point(e.X, e.Y)));
 				if (ix != -1)
 				{
-					ListItem obj = (ListItem)lbx1.Items[dix];
-					lbx1.Items.Remove(obj);
-					lbx1.Items.Insert(ix, obj);
-					lbx1.SetItemChecked(ix, obj.Enabled);
+					ListItem obj = (ListItem)listbox.Items[dix];
+					listbox.Items.Remove(obj);
+					listbox.Items.Insert(ix, obj);
+					listbox.SetItemChecked(ix, obj.Enabled);
 				}
 			}
 			else if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -543,7 +587,7 @@ namespace multirun
 				string[] files = (string[])e.Data.GetData(DataFormats.FileDrop);
 				foreach (string file in files)
 				{
-					lbx1.Items.Add(new ListItem(file), true);
+					listbox.Items.Add(new ListItem(file), true);
 				}
 			}
 		}
@@ -566,24 +610,37 @@ namespace multirun
 		//==============================================================
 		private void lbx1_KeyDown(object sender, KeyEventArgs e)
 		{
+			CheckedListBox listbox = (CheckedListBox)sender;
 			if (e.KeyCode == Keys.Delete)
 			{
-				if (lbx1.SelectedItem != null)
-					lbx1.Items.Remove(lbx1.SelectedItem);
+				if (listbox.SelectedItem != null)
+					listbox.Items.Remove(listbox.SelectedItem);
+			}
+			else if (e.KeyCode == Keys.Enter && e.Modifiers == Keys.Control)
+			{
+				button3_Click(null, null);
 			}
 		}
 
 		//==============================================================
 		private void lbx1_SelectedIndexChanged(object sender, EventArgs e)
 		{
-			if (lbx1.SelectedItem != null)
+			CheckedListBox listbox = (CheckedListBox)sender;
+			if (listbox.SelectedItem != null)
 			{
 				chbx1.Enabled = true;
-				chbx1.Checked = ((ListItem)lbx1.SelectedItem).Minimize;
+				chbx1.Checked = ((ListItem)listbox.SelectedItem).Minimize;
 				nud1.Enabled = true;
-				nud1.Value = ((ListItem)lbx1.SelectedItem).Timewait;
+				nud1.Value = ((ListItem)listbox.SelectedItem).Timewait;
 				cmbbx1.Enabled = true;
-				cmbbx1.SelectedIndex = ((ListItem)lbx1.SelectedItem).Priority;
+				cmbbx1.SelectedIndex = ((ListItem)listbox.SelectedItem).Priority;
+				rbtn1.Enabled = true;
+				rbtn2.Enabled = true;
+				if (((ListItem)listbox.SelectedItem).Waitstart)
+					rbtn1.Checked = true;
+				else
+					rbtn2.Checked = true;
+				button3.Enabled = true;
 			}
 			else
 			{
@@ -593,6 +650,11 @@ namespace multirun
 				nud1.Enabled = false;
 				cmbbx1.SelectedIndex = 3;
 				cmbbx1.Enabled = false;
+				rbtn1.Checked = false;
+				rbtn2.Checked = false;
+				rbtn1.Enabled = false;
+				rbtn2.Enabled = false;
+				button3.Enabled = false;
 			}
 		}
 
@@ -604,28 +666,42 @@ namespace multirun
 		}
 
 		//==============================================================
+		private void lbx1_ItemCheck(object sender, ItemCheckEventArgs e)
+		{
+			CheckedListBox listbox = (CheckedListBox)sender;
+			((ListItem)listbox.Items[e.Index]).Enabled = (e.NewValue == CheckState.Checked);
+		}
+
+		//==============================================================
 		private void chbx1_Click(object sender, EventArgs e)
 		{
-			((ListItem)lbx1.SelectedItem).Minimize = chbx1.Checked;
+			CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
+			((ListItem)listbox.SelectedItem).Minimize = chbx1.Checked;
 		}
 		//==============================================================
 		private void nud1_ValueChanged(object sender, EventArgs e)
 		{
-			if (lbx1.SelectedItem != null)
-				((ListItem)lbx1.SelectedItem).Timewait = (int)nud1.Value;
+			CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
+			if (listbox.SelectedItem != null)
+				((ListItem)listbox.SelectedItem).Timewait = (int)nud1.Value;
 		}
-
-		//==============================================================
-		private void lbx1_ItemCheck(object sender, ItemCheckEventArgs e)
-		{
-			((ListItem)lbx1.Items[e.Index]).Enabled = (e.NewValue == CheckState.Checked);
-		}
-
 		//==============================================================
 		private void cmbbx1_SelectedIndexChanged(object sender, EventArgs e)
 		{
-			if (lbx1.SelectedItem != null)
-				((ListItem)lbx1.SelectedItem).Priority = cmbbx1.SelectedIndex;
+			CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
+			if (listbox.SelectedItem != null)
+				((ListItem)listbox.SelectedItem).Priority = cmbbx1.SelectedIndex;
+		}
+		//==============================================================
+		private void tabctrl1_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			lbx1_SelectedIndexChanged((lbx1.Visible) ? lbx1 : lbx2, null);
+		}
+		//==============================================================
+		private void rbtn1_Click(object sender, EventArgs e)
+		{
+			CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
+			((ListItem)listbox.SelectedItem).Waitstart = rbtn1.Checked;
 		}
 
 		//==============================================================
@@ -661,6 +737,15 @@ namespace multirun
 			FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
 			MessageBox.Show("Multirun v" + fvi.FileVersion, "About");
 		}
+
+		//==============================================================
+		private void button3_Click(object sender, EventArgs e)
+		{
+			CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
+			if (listbox.SelectedItem != null)
+				RunIt((ListItem)listbox.SelectedItem);
+		}
+
 
 		//==============================================================
 
