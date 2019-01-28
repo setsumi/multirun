@@ -79,12 +79,14 @@ namespace multirun
 			public int Timewait = -1;
 			public int Priority = 3;
 			public bool Waitstart = true;
+			public int WaitMore = 0;
 
 			public ListItem(string file)
 			{
 				this.File = file;
 			}
-			public ListItem(string file, bool minimize, int timewait, bool enabled, int priority, bool waitstart)
+			public ListItem(string file, bool minimize, int timewait, bool enabled,
+				int priority, bool waitstart, int waitmore)
 			{
 				this.File = file;
 				this.Minimize = minimize;
@@ -92,6 +94,7 @@ namespace multirun
 				this.Enabled = enabled;
 				this.Priority = priority;
 				this.Waitstart = waitstart;
+				this.WaitMore = waitmore;
 			}
 
 			public override string ToString() { return File; }
@@ -123,6 +126,8 @@ namespace multirun
 			lbx2.CheckOnClick = false;
 			nud1.Maximum = decimal.MaxValue;
 			nud1.Minimum = -1;
+			nud2.Maximum = decimal.MaxValue;
+			nud2.Minimum = 0;
 			cmbbx1.Items.Add("Realtime: 24");
 			cmbbx1.Items.Add("High: 13");
 			cmbbx1.Items.Add("Above Normal: 10");
@@ -188,7 +193,8 @@ namespace multirun
 					int.Parse(level1Element.Attribute("timewait").Value.ToString()),
 					bool.Parse(level1Element.Attribute("enabled").Value.ToString()),
 					int.Parse(level1Element.Attribute("priority").Value.ToString()),
-					bool.Parse(level1Element.Attribute("waitstart").Value.ToString())
+					bool.Parse(level1Element.Attribute("waitstart").Value.ToString()),
+					int.Parse(level1Element.Attribute("waitmore").Value.ToString())
 					), bool.Parse(level1Element.Attribute("enabled").Value.ToString()));
 			}
 		}
@@ -270,6 +276,10 @@ namespace multirun
 
 			itemAttribute = doc.CreateAttribute("priority");
 			itemAttribute.Value = item.Priority.ToString();
+			itemNode.Attributes.Append(itemAttribute);
+
+			itemAttribute = doc.CreateAttribute("waitmore");
+			itemAttribute.Value = item.WaitMore.ToString();
 			itemNode.Attributes.Append(itemAttribute);
 
 			return itemNode;
@@ -453,6 +463,12 @@ namespace multirun
 				}
 			}
 			catch { }
+
+			if (item.WaitMore > 0)
+			{
+				Thread.Sleep(item.WaitMore);
+			}
+
 			Thread.Sleep(200);
 
 			proc.Refresh();
@@ -640,6 +656,9 @@ namespace multirun
 					rbtn1.Checked = true;
 				else
 					rbtn2.Checked = true;
+				nud2.Enabled = true;
+				nud2.Value = ((ListItem)listbox.SelectedItem).WaitMore;
+
 				button3.Enabled = true;
 			}
 			else
@@ -654,6 +673,9 @@ namespace multirun
 				rbtn2.Checked = false;
 				rbtn1.Enabled = false;
 				rbtn2.Enabled = false;
+				nud2.Value = 0;
+				nud2.Enabled = false;
+
 				button3.Enabled = false;
 			}
 		}
@@ -684,6 +706,13 @@ namespace multirun
 			CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
 			if (listbox.SelectedItem != null)
 				((ListItem)listbox.SelectedItem).Timewait = (int)nud1.Value;
+		}
+		//--------------------------------------------------------------
+		private void nud2_ValueChanged(object sender, EventArgs e)
+		{
+			CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
+			if (listbox.SelectedItem != null)
+				((ListItem)listbox.SelectedItem).WaitMore = (int)nud2.Value;
 		}
 		//==============================================================
 		private void cmbbx1_SelectedIndexChanged(object sender, EventArgs e)
