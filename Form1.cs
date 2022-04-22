@@ -18,14 +18,124 @@ namespace multirun
 {
 	public partial class Form1 : Form
 	{
+        //==============================================================
+        [StructLayout(LayoutKind.Sequential)]
+        public struct RECT
+        {
+            public int Left, Top, Right, Bottom;
+
+            public RECT(int left, int top, int right, int bottom)
+            {
+                Left = left;
+                Top = top;
+                Right = right;
+                Bottom = bottom;
+            }
+
+            public RECT(System.Drawing.Rectangle r) : this(r.Left, r.Top, r.Right, r.Bottom) { }
+
+            public int X
+            {
+                get { return Left; }
+                set { Right -= (Left - value); Left = value; }
+            }
+
+            public int Y
+            {
+                get { return Top; }
+                set { Bottom -= (Top - value); Top = value; }
+            }
+
+            public int Height
+            {
+                get { return Bottom - Top; }
+                set { Bottom = value + Top; }
+            }
+
+            public int Width
+            {
+                get { return Right - Left; }
+                set { Right = value + Left; }
+            }
+
+            public System.Drawing.Point Location
+            {
+                get { return new System.Drawing.Point(Left, Top); }
+                set { X = value.X; Y = value.Y; }
+            }
+
+            public System.Drawing.Size Size
+            {
+                get { return new System.Drawing.Size(Width, Height); }
+                set { Width = value.Width; Height = value.Height; }
+            }
+
+            public static implicit operator System.Drawing.Rectangle(RECT r)
+            {
+                return new System.Drawing.Rectangle(r.Left, r.Top, r.Width, r.Height);
+            }
+
+            public static implicit operator RECT(System.Drawing.Rectangle r)
+            {
+                return new RECT(r);
+            }
+
+            public static bool operator ==(RECT r1, RECT r2)
+            {
+                return r1.Equals(r2);
+            }
+
+            public static bool operator !=(RECT r1, RECT r2)
+            {
+                return !r1.Equals(r2);
+            }
+
+            public bool Equals(RECT r)
+            {
+                return r.Left == Left && r.Top == Top && r.Right == Right && r.Bottom == Bottom;
+            }
+
+            public override bool Equals(object obj)
+            {
+                if (obj is RECT)
+                    return Equals((RECT)obj);
+                else if (obj is System.Drawing.Rectangle)
+                    return Equals(new RECT((System.Drawing.Rectangle)obj));
+                return false;
+            }
+
+            public override int GetHashCode()
+            {
+                return ((System.Drawing.Rectangle)this).GetHashCode();
+            }
+
+            public override string ToString()
+            {
+                return string.Format(System.Globalization.CultureInfo.CurrentCulture, "{{Left={0},Top={1},Right={2},Bottom={3}}}", Left, Top, Right, Bottom);
+            }
+        }
+
+        [DllImport("user32.dll", SetLastError = true)]
+        static extern IntPtr FindWindowEx(IntPtr parentHandle, IntPtr hWndChildAfter, string className, string windowTitle);
+        [DllImport("user32.dll")]
+		static extern bool GetClientRect(IntPtr hWnd, out RECT lpRect);
+
 		//==============================================================
-		private const int SW_MAXIMIZE = 3;
+		private const uint WM_MOUSEMOVE = 0x0200;
+
+		[return: MarshalAs(UnmanagedType.Bool)]
+		[DllImport("user32.dll", SetLastError = true, CharSet = CharSet.Auto)]
+		static extern bool PostMessage(HandleRef hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
+        //[DllImport("user32.dll")]
+        //static extern int SendMessage(IntPtr hWnd, uint Msg, int wParam, int lParam);
+
+        //==============================================================
+        private const int SW_MAXIMIZE = 3;
 		private const int SW_MINIMIZE = 6;
 
 		[DllImport("user32.dll")]
 		[return: MarshalAs(UnmanagedType.Bool)]
 		static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-
 
 		//==============================================================
 		private const uint WM_CLOSE = 0x0010;
@@ -161,10 +271,16 @@ namespace multirun
 
 			XElement level1Element = XElement.Load(configfile).Element("config");
 			profilefile = level1Element.Attribute("profile").Value;
-		}
+            try
+            {
+                this.Width = Int32.Parse(level1Element.Attribute("window-width").Value);
+                this.Height = Int32.Parse(level1Element.Attribute("window-height").Value);
+            }
+            catch { }
+        }
 
-		//==============================================================
-		private void ProfileLoad(string file)
+        //==============================================================
+        private void ProfileLoad(string file)
 		{
 			if (!File.Exists(file)) return;
 
@@ -220,6 +336,14 @@ namespace multirun
 
 			XmlAttribute optionAttribute = doc.CreateAttribute("profile");
 			optionAttribute.Value = profilefile;
+			configNode.Attributes.Append(optionAttribute);
+
+			optionAttribute = doc.CreateAttribute("window-width");
+			optionAttribute.Value = this.Width.ToString();
+			configNode.Attributes.Append(optionAttribute);
+
+			optionAttribute = doc.CreateAttribute("window-height");
+			optionAttribute.Value = this.Height.ToString();
 			configNode.Attributes.Append(optionAttribute);
 
 			rootNode.AppendChild(configNode);
@@ -288,7 +412,9 @@ namespace multirun
 		//==============================================================
 		private void button1_Click(object sender, EventArgs e)
 		{
-			this.WindowState = FormWindowState.Minimized;
+            notifyIcon1.Visible = true;
+            this.ShowInTaskbar = false;
+            this.WindowState = FormWindowState.Minimized;
 			this.ActiveControl = button2;
 
 			foreach (ListItem item in lbx1.Items)
@@ -320,10 +446,10 @@ namespace multirun
 							foreach (var handle in EnumerateProcessWindowHandles(p.Id))
 							{
 								IntPtr style = GetWindowLong(handle, (int)GWL.GWL_STYLE);
-								if (((uint)style & (uint)WindowStyles.WS_POPUP) != 0)
+								if (((UInt64)style & (UInt64)WindowStyles.WS_POPUP) != 0)
 								{
 								}
-								else if (((uint)style & (uint)WindowStyles.WS_CHILD) != 0)
+								else if (((UInt64)style & (UInt64)WindowStyles.WS_CHILD) != 0)
 								{
 								}
 								else // WS_OVERLAPPED
@@ -333,8 +459,12 @@ namespace multirun
 										PostMessage(handle, WM_CLOSE, 0, 0);
 								}
 							}
-						}
-						p.Close();
+                            if (!p.WaitForExit(1000))
+                            {
+								p.Kill();
+                            }
+                        }
+                        p.Close();
 						p.Dispose();
 						Thread.Sleep(50);
 					}
@@ -346,11 +476,12 @@ namespace multirun
 				if (item.Enabled)
 					RunIt(item);
 
-			this.Close();
-		}
+            RefreshSystray();
+            this.Close();
+        }
 
-		//==============================================================
-		private Process GetActiveProcess(ListItem item)
+        //==============================================================
+        private Process GetActiveProcess(ListItem item)
 		{
 			Process ret = null;
 
@@ -742,11 +873,13 @@ namespace multirun
 			}
 		}
 
+		//==============================================================
 		private void saveToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			ProfileSave(profilefile);
 		}
 
+		//==============================================================
 		private void saveasToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			if (saveFileDialog1.ShowDialog() == DialogResult.OK)
@@ -755,11 +888,13 @@ namespace multirun
 			}
 		}
 
+		//==============================================================
 		private void exitToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			this.Close();
 		}
 
+		//==============================================================
 		private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
@@ -775,8 +910,41 @@ namespace multirun
 				RunIt((ListItem)listbox.SelectedItem);
 		}
 
+        //==============================================================
+        private void notifyIcon1_Click(object sender, EventArgs e)
+        {
+            notifyIcon1.Visible = false;
+            this.ShowInTaskbar = true;
+            this.WindowState = FormWindowState.Normal;
+        }
 
-		//==============================================================
+        //==============================================================
+        private void RefreshSystray()
+        {
+            IntPtr hNotificationArea = FindWindowEx(FindWindowEx(FindWindowEx(FindWindowEx(
+              IntPtr.Zero, IntPtr.Zero, "Shell_TrayWnd", null),
+              IntPtr.Zero, "TrayNotifyWnd", null),
+              IntPtr.Zero, "SysPager", null),
+              IntPtr.Zero, "ToolbarWindow32", null);
+            RECT r;
+            GetClientRect(hNotificationArea, out r);
 
-	}
+            //Now we've got the area, force it to update
+            //by sending mouse messages to it.
+            int x = 0, y = 0;
+            while (x < r.Right)
+            {
+                while (y < r.Bottom)
+                {
+                    PostMessage(hNotificationArea, WM_MOUSEMOVE, 0, (y << 16) + x);
+                    y += 5;
+                }
+                y = 0;
+                x += 5;
+            }
+        }
+
+        //==============================================================
+
+    }
 }
