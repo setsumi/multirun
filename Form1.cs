@@ -13,6 +13,7 @@ using System.Xml;
 using System.Xml.Linq;
 using System.IO;
 using System.Reflection;
+using System.Management;
 
 namespace multirun
 {
@@ -190,13 +191,15 @@ namespace multirun
 			public int Priority = 3;
 			public bool Waitstart = true;
 			public int WaitMore = 0;
+			public string AnotherExe;
+			public string AnotherCmdline;
 
 			public ListItem(string file)
 			{
 				this.File = file;
 			}
 			public ListItem(string file, bool minimize, int timewait, bool enabled,
-				int priority, bool waitstart, int waitmore)
+				int priority, bool waitstart, int waitmore, string anexe, string ancmdline)
 			{
 				this.File = file;
 				this.Minimize = minimize;
@@ -205,6 +208,8 @@ namespace multirun
 				this.Priority = priority;
 				this.Waitstart = waitstart;
 				this.WaitMore = waitmore;
+				this.AnotherExe = anexe;
+				this.AnotherCmdline = ancmdline;
 			}
 
 			public override string ToString() { return File; }
@@ -303,14 +308,22 @@ namespace multirun
 
 			foreach (XElement level1Element in XElement.Load(file).Elements(element))
 			{
-				listbox.Items.Add(new ListItem(
+                string anexe = string.Empty, ancmdline = string.Empty;
+                try
+                {
+                    anexe = level1Element.Attribute("executable").Value;
+                    ancmdline = level1Element.Attribute("cmdline").Value;
+                }
+                catch { }
+                listbox.Items.Add(new ListItem(
 					level1Element.Attribute("file").Value.ToString(),
 					bool.Parse(level1Element.Attribute("minimize").Value.ToString()),
 					int.Parse(level1Element.Attribute("timewait").Value.ToString()),
 					bool.Parse(level1Element.Attribute("enabled").Value.ToString()),
 					int.Parse(level1Element.Attribute("priority").Value.ToString()),
 					bool.Parse(level1Element.Attribute("waitstart").Value.ToString()),
-					int.Parse(level1Element.Attribute("waitmore").Value.ToString())
+					int.Parse(level1Element.Attribute("waitmore").Value.ToString()),
+					anexe, ancmdline
 					), bool.Parse(level1Element.Attribute("enabled").Value.ToString()));
 			}
 		}
@@ -406,6 +419,14 @@ namespace multirun
 			itemAttribute.Value = item.WaitMore.ToString();
 			itemNode.Attributes.Append(itemAttribute);
 
+			itemAttribute = doc.CreateAttribute("executable");
+			itemAttribute.Value = item.AnotherExe;
+			itemNode.Attributes.Append(itemAttribute);
+
+			itemAttribute = doc.CreateAttribute("cmdline");
+			itemAttribute.Value = item.AnotherCmdline;
+			itemNode.Attributes.Append(itemAttribute);
+
 			return itemNode;
 		}
 
@@ -432,7 +453,7 @@ namespace multirun
 				if (item.Enabled)
 				{
 					Process p = GetActiveProcess(item);
-					if (p != null)
+                    if (p != null)
 					{
 						IntPtr hmain = IntPtr.Zero;
 						if (p.MainWindowHandle != IntPtr.Zero)
@@ -485,37 +506,84 @@ namespace multirun
 		{
 			Process ret = null;
 
-			if (item.Proc != null)
-			{
-				item.Proc.Refresh();
-				if (!item.Proc.HasExited)
-				{
-					ret = item.Proc;
-				}
-				else
-				{
-					string exe = GetExecutable(item.ToString());
+            if (!string.IsNullOrEmpty(item.AnotherExe)) // another process to close
+            {
+                // cleanup previous process
+                if (item.Proc != null)
+                {
+                    item.Proc.Close();
+                    item.Proc.Dispose();
+                    item.Proc = null;
+                }
 
-					Process[] processes = Process.GetProcesses();
-					foreach (Process proc in processes)
-					{
-						string file = null;
-						try { file = proc.MainModule.FileName; }
-						catch { }
-						if (file != null && string.Equals(file, exe, StringComparison.OrdinalIgnoreCase))
-						{
-							ret = proc;
-							// cleanup previous process
-							item.Proc.Close();
-							item.Proc.Dispose();
-							item.Proc = proc;
+                Process[] processes = Process.GetProcesses();
+                foreach (Process proc in processes)
+                {
+                    string file = null;
+                    try { file = proc.MainModule.FileName; }
+                    catch { }
+                    if (!string.IsNullOrEmpty(file) && -1 != file.IndexOf(item.AnotherExe, StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (string.IsNullOrEmpty(item.AnotherCmdline))
+                        {
+                            item.Proc = proc;
+                            ret = proc;
+                        }
+                        else
+                        {
+                            try
+                            {
+                                using (var searcher = new ManagementObjectSearcher("SELECT CommandLine FROM Win32_Process WHERE ProcessId = " + proc.Id))
+                                using (var objects = searcher.Get())
+                                {
+                                    var result = objects.Cast<ManagementBaseObject>().SingleOrDefault();
+                                    string cmdline = result?["CommandLine"]?.ToString() ?? string.Empty;
+                                    if (cmdline.Contains(item.AnotherCmdline))
+                                    {
+										item.Proc = proc;
+										ret = proc;
+									}
+								}
+                            }
+                            catch { }
+                        }
+                    }
+                }
+            }
+            else // same started process to close
+            {
+                if (item.Proc != null)
+                {
+                    item.Proc.Refresh();
+                    if (!item.Proc.HasExited)
+                    {
+                        ret = item.Proc;
+                    }
+                    else
+                    {
+                        string exe = GetExecutable(item.ToString());
 
-							break;
-						}
-					}
-				}
-			}
-			return ret;
+                        Process[] processes = Process.GetProcesses();
+                        foreach (Process proc in processes)
+                        {
+                            string file = null;
+                            try { file = proc.MainModule.FileName; }
+                            catch { }
+                            if (file != null && string.Equals(file, exe, StringComparison.OrdinalIgnoreCase))
+                            {
+                                ret = proc;
+                                // cleanup previous process
+                                item.Proc.Close();
+                                item.Proc.Dispose();
+                                item.Proc = proc;
+
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+            return ret;
 		}
 
 		//==============================================================
@@ -789,6 +857,10 @@ namespace multirun
 					rbtn2.Checked = true;
 				nud2.Enabled = true;
 				nud2.Value = ((ListItem)listbox.SelectedItem).WaitMore;
+				textBoxExec.Enabled = true;
+				textBoxExec.Text = ((ListItem)listbox.SelectedItem).AnotherExe;
+				textBoxCmdline.Enabled = true;
+				textBoxCmdline.Text = ((ListItem)listbox.SelectedItem).AnotherCmdline;
 
 				button3.Enabled = true;
 			}
@@ -806,6 +878,10 @@ namespace multirun
 				rbtn2.Enabled = false;
 				nud2.Value = 0;
 				nud2.Enabled = false;
+				textBoxExec.Text = string.Empty;
+				textBoxExec.Enabled = false;
+				textBoxCmdline.Text = string.Empty;
+				textBoxCmdline.Enabled = false;
 
 				button3.Enabled = false;
 			}
@@ -852,8 +928,22 @@ namespace multirun
 			if (listbox.SelectedItem != null)
 				((ListItem)listbox.SelectedItem).Priority = cmbbx1.SelectedIndex;
 		}
-		//==============================================================
-		private void tabctrl1_SelectedIndexChanged(object sender, EventArgs e)
+        //==============================================================
+        private void textBoxExec_TextChanged(object sender, EventArgs e)
+        {
+            CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
+            if (listbox.SelectedItem != null)
+                ((ListItem)listbox.SelectedItem).AnotherExe = textBoxExec.Text;
+        }
+        //--------------------------------------------------------------
+        private void textBoxCmdline_TextChanged(object sender, EventArgs e)
+        {
+            CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
+            if (listbox.SelectedItem != null)
+                ((ListItem)listbox.SelectedItem).AnotherCmdline = textBoxCmdline.Text;
+        }
+        //==============================================================
+        private void tabctrl1_SelectedIndexChanged(object sender, EventArgs e)
 		{
 			lbx1_SelectedIndexChanged((lbx1.Visible) ? lbx1 : lbx2, null);
 		}
