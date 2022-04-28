@@ -434,8 +434,8 @@ namespace multirun
 		private void button1_Click(object sender, EventArgs e)
 		{
             notifyIcon1.Visible = true;
-            this.ShowInTaskbar = false;
-            this.WindowState = FormWindowState.Minimized;
+			this.Hide();
+
 			this.ActiveControl = button2;
 
 			foreach (ListItem item in lbx1.Items)
@@ -1004,8 +1004,7 @@ namespace multirun
         private void notifyIcon1_Click(object sender, EventArgs e)
         {
             notifyIcon1.Visible = false;
-            this.ShowInTaskbar = true;
-            this.WindowState = FormWindowState.Normal;
+			this.Show();
         }
 
         //==============================================================
