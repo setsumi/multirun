@@ -30,7 +30,7 @@
 		{
             this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
-            this.button1 = new System.Windows.Forms.Button();
+            this.btnRunAll = new System.Windows.Forms.Button();
             this.chbx1 = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
@@ -53,7 +53,7 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.nud1 = new System.Windows.Forms.NumericUpDown();
-            this.button2 = new System.Windows.Forms.Button();
+            this.btnCloseAll = new System.Windows.Forms.Button();
             this.menu1 = new System.Windows.Forms.MenuStrip();
             this.profileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -78,16 +78,16 @@
             this.menu1.SuspendLayout();
             this.SuspendLayout();
             // 
-            // button1
+            // btnRunAll
             // 
-            this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.button1.Location = new System.Drawing.Point(12, 355);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(75, 23);
-            this.button1.TabIndex = 2;
-            this.button1.Text = "Run All";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.btnRunAll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.btnRunAll.Location = new System.Drawing.Point(12, 355);
+            this.btnRunAll.Name = "btnRunAll";
+            this.btnRunAll.Size = new System.Drawing.Size(75, 23);
+            this.btnRunAll.TabIndex = 2;
+            this.btnRunAll.Text = "Run All";
+            this.btnRunAll.UseVisualStyleBackColor = true;
+            this.btnRunAll.Click += new System.EventHandler(this.btnRunAll_Click);
             // 
             // chbx1
             // 
@@ -371,16 +371,16 @@
             this.nud1.TabIndex = 7;
             this.nud1.ValueChanged += new System.EventHandler(this.nud1_ValueChanged);
             // 
-            // button2
+            // btnCloseAll
             // 
-            this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button2.Location = new System.Drawing.Point(448, 355);
-            this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(75, 23);
-            this.button2.TabIndex = 4;
-            this.button2.Text = "Close All";
-            this.button2.UseVisualStyleBackColor = true;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.btnCloseAll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnCloseAll.Location = new System.Drawing.Point(448, 355);
+            this.btnCloseAll.Name = "btnCloseAll";
+            this.btnCloseAll.Size = new System.Drawing.Size(75, 23);
+            this.btnCloseAll.TabIndex = 4;
+            this.btnCloseAll.Text = "Close All";
+            this.btnCloseAll.UseVisualStyleBackColor = true;
+            this.btnCloseAll.Click += new System.EventHandler(this.btnCloseAll_Click);
             // 
             // menu1
             // 
@@ -493,9 +493,9 @@
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(535, 389);
             this.Controls.Add(this.button3);
-            this.Controls.Add(this.button2);
+            this.Controls.Add(this.btnCloseAll);
             this.Controls.Add(this.groupBox1);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.btnRunAll);
             this.Controls.Add(this.menu1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MainMenuStrip = this.menu1;
@@ -521,10 +521,10 @@
 
 		#endregion
 
-		private System.Windows.Forms.Button button1;
+		private System.Windows.Forms.Button btnRunAll;
 		private System.Windows.Forms.CheckBox chbx1;
 		private System.Windows.Forms.GroupBox groupBox1;
-		private System.Windows.Forms.Button button2;
+		private System.Windows.Forms.Button btnCloseAll;
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.NumericUpDown nud1;
 		private System.Windows.Forms.CheckedListBox lbx1;

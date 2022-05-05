@@ -232,7 +232,7 @@ namespace multirun
 		//==============================================================
 		private void Form1_Load(object sender, EventArgs e)
 		{
-			this.AcceptButton = button1;
+			this.AcceptButton = btnRunAll;
 			this.ActiveControl = lbx1;
 
 			lbx1.AllowDrop = true;
@@ -431,12 +431,12 @@ namespace multirun
 		}
 
 		//==============================================================
-		private void button1_Click(object sender, EventArgs e)
+		private void btnRunAll_Click(object sender, EventArgs e)
 		{
             notifyIcon1.Visible = true;
 			this.Hide();
 
-			this.ActiveControl = button2;
+			this.ActiveControl = btnCloseAll;
 
 			foreach (ListItem item in lbx1.Items)
 				if (item.Enabled)
@@ -444,7 +444,7 @@ namespace multirun
 		}
 
 		//==============================================================
-		private void button2_Click(object sender, EventArgs e)
+		private void btnCloseAll_Click(object sender, EventArgs e)
 		{
 			// close running tasks in reverse order
 			for (int i = lbx1.Items.Count - 1; i >= 0; i--)
@@ -502,11 +502,17 @@ namespace multirun
         }
 
         //==============================================================
-        private Process GetActiveProcess(ListItem item)
-		{
-			Process ret = null;
+        private Process GetActiveProcess(ListItem item, string prm_exe = "", string prm_cmdline = "")
+        {
+            Process ret = null;
 
-            if (!string.IsNullOrEmpty(item.AnotherExe)) // another process to close
+            if (string.IsNullOrEmpty(prm_exe))
+            {
+                prm_exe = item.AnotherExe;
+                prm_cmdline = item.AnotherCmdline;
+            }
+
+            if (!string.IsNullOrEmpty(prm_exe)) // another process
             {
                 // cleanup previous process
                 if (item.Proc != null)
@@ -522,12 +528,13 @@ namespace multirun
                     string file = null;
                     try { file = proc.MainModule.FileName; }
                     catch { }
-                    if (!string.IsNullOrEmpty(file) && -1 != file.IndexOf(item.AnotherExe, StringComparison.OrdinalIgnoreCase))
+                    if (!string.IsNullOrEmpty(file) && -1 != file.IndexOf(prm_exe, StringComparison.OrdinalIgnoreCase))
                     {
-                        if (string.IsNullOrEmpty(item.AnotherCmdline))
+                        if (string.IsNullOrEmpty(prm_cmdline))
                         {
                             item.Proc = proc;
                             ret = proc;
+							break;
                         }
                         else
                         {
@@ -538,10 +545,11 @@ namespace multirun
                                 {
                                     var result = objects.Cast<ManagementBaseObject>().SingleOrDefault();
                                     string cmdline = result?["CommandLine"]?.ToString() ?? string.Empty;
-                                    if (cmdline.Contains(item.AnotherCmdline))
+                                    if (cmdline.Contains(prm_cmdline))
                                     {
 										item.Proc = proc;
 										ret = proc;
+										break;
 									}
 								}
                             }
@@ -550,7 +558,7 @@ namespace multirun
                     }
                 }
             }
-            else // same started process to close
+            else // same started process
             {
                 if (item.Proc != null)
                 {
@@ -633,13 +641,30 @@ namespace multirun
 
 			if (!File.Exists(path)) return;
 
-			if (item.Proc != null)
-			{
-				item.Proc.Close();
-				item.Proc.Dispose();
-			}
-			Process proc = new Process();
-			item.Proc = proc;
+            //check of already running
+            if (item.Proc != null)
+            {
+                item.Proc.Refresh();
+                if (!item.Proc.HasExited)
+                {
+                    return;
+                }
+                else
+                {
+                    item.Proc.Close();
+                    item.Proc.Dispose();
+                }
+            }
+            if (string.IsNullOrEmpty(item.AnotherExe))
+                item.Proc = GetActiveProcess(item, path, args);
+            else
+                item.Proc = GetActiveProcess(item);
+            if (item.Proc != null)
+                return;
+
+            // start new process
+            Process proc = new Process();
+            item.Proc = proc;
 			proc.StartInfo.FileName = path;
 			proc.StartInfo.WorkingDirectory = workdir;
 			proc.StartInfo.Arguments = args;
