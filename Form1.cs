@@ -1014,7 +1014,7 @@ namespace multirun
         {
             System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
             FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
-            MessageBox.Show("Multirun v" + fvi.FileVersion, "About");
+            MessageBox.Show("Multirun v" + fvi.FileVersion + "\n\nRight Click minimize button - minimize to tray", "About");
         }
 
         //==============================================================
@@ -1030,6 +1030,7 @@ namespace multirun
         {
             notifyIcon1.Visible = false;
             this.Show();
+            this.Activate();
         }
 
         //==============================================================
@@ -1059,6 +1060,24 @@ namespace multirun
         }
 
         //==============================================================
+        const int WM_NCRBUTTONDOWN = 0x00A4;
+        const int HTMINBUTTON = 8;
 
+        protected override void WndProc(ref Message m)
+        {
+            // no client area
+            if (m.Msg == WM_NCRBUTTONDOWN) // right click
+            {
+                if (m.WParam == (IntPtr)HTMINBUTTON) // minimize button
+                {
+                    notifyIcon1.Visible = true;
+                    this.Hide();
+                    return; // do not process
+                }
+            }
+            base.WndProc(ref m);
+        }
+
+        //==============================================================
     }
 }
