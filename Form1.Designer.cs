@@ -288,7 +288,7 @@
             this.lbx1.FormattingEnabled = true;
             this.lbx1.Location = new System.Drawing.Point(3, 3);
             this.lbx1.Name = "lbx1";
-            this.lbx1.Size = new System.Drawing.Size(555, 169);
+            this.lbx1.Size = new System.Drawing.Size(485, 169);
             this.lbx1.TabIndex = 0;
             this.lbx1.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.lbx1_ItemCheck);
             this.lbx1.SelectedIndexChanged += new System.EventHandler(this.lbx1_SelectedIndexChanged);
@@ -480,6 +480,7 @@
             // 
             // panelCloseAll
             // 
+            this.panelCloseAll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.panelCloseAll.Controls.Add(this.btnCloseAll);
             this.panelCloseAll.Location = new System.Drawing.Point(442, 350);
             this.panelCloseAll.Name = "panelCloseAll";
@@ -495,6 +496,7 @@
             this.btnCloseAll.TabIndex = 5;
             this.btnCloseAll.Text = "Close All";
             this.btnCloseAll.UseVisualStyleBackColor = true;
+            this.btnCloseAll.Click += new System.EventHandler(this.btnCloseAll_Click);
             // 
             // Form1
             // 
