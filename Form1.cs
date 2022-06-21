@@ -433,10 +433,11 @@ namespace multirun
         //==============================================================
         private void btnRunAll_Click(object sender, EventArgs e)
         {
+            notifyIcon1.Text = "multirun - RUNNING ALL";
             notifyIcon1.Visible = true;
-            this.Hide();
-
+            panelCloseAll.BackColor = Color.LightPink;
             this.ActiveControl = btnCloseAll;
+            this.Hide();
 
             foreach (ListItem item in lbx1.Items)
                 if (item.Enabled)

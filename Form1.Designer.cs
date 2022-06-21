@@ -53,7 +53,6 @@
             this.label2 = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
             this.nud1 = new System.Windows.Forms.NumericUpDown();
-            this.btnCloseAll = new System.Windows.Forms.Button();
             this.menu1 = new System.Windows.Forms.MenuStrip();
             this.profileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -68,6 +67,8 @@
             this.button3 = new System.Windows.Forms.Button();
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
+            this.panelCloseAll = new System.Windows.Forms.Panel();
+            this.btnCloseAll = new System.Windows.Forms.Button();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nud2)).BeginInit();
@@ -76,6 +77,7 @@
             this.tabPage2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nud1)).BeginInit();
             this.menu1.SuspendLayout();
+            this.panelCloseAll.SuspendLayout();
             this.SuspendLayout();
             // 
             // btnRunAll
@@ -371,17 +373,6 @@
             this.nud1.TabIndex = 7;
             this.nud1.ValueChanged += new System.EventHandler(this.nud1_ValueChanged);
             // 
-            // btnCloseAll
-            // 
-            this.btnCloseAll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.btnCloseAll.Location = new System.Drawing.Point(448, 355);
-            this.btnCloseAll.Name = "btnCloseAll";
-            this.btnCloseAll.Size = new System.Drawing.Size(75, 23);
-            this.btnCloseAll.TabIndex = 4;
-            this.btnCloseAll.Text = "Close All";
-            this.btnCloseAll.UseVisualStyleBackColor = true;
-            this.btnCloseAll.Click += new System.EventHandler(this.btnCloseAll_Click);
-            // 
             // menu1
             // 
             this.menu1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
@@ -487,13 +478,31 @@
             this.notifyIcon1.Click += new System.EventHandler(this.notifyIcon1_Click);
             this.notifyIcon1.DoubleClick += new System.EventHandler(this.notifyIcon1_Click);
             // 
+            // panelCloseAll
+            // 
+            this.panelCloseAll.Controls.Add(this.btnCloseAll);
+            this.panelCloseAll.Location = new System.Drawing.Point(442, 350);
+            this.panelCloseAll.Name = "panelCloseAll";
+            this.panelCloseAll.Size = new System.Drawing.Size(93, 36);
+            this.panelCloseAll.TabIndex = 5;
+            // 
+            // btnCloseAll
+            // 
+            this.btnCloseAll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.btnCloseAll.Location = new System.Drawing.Point(9, 7);
+            this.btnCloseAll.Name = "btnCloseAll";
+            this.btnCloseAll.Size = new System.Drawing.Size(75, 23);
+            this.btnCloseAll.TabIndex = 5;
+            this.btnCloseAll.Text = "Close All";
+            this.btnCloseAll.UseVisualStyleBackColor = true;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(535, 389);
+            this.Controls.Add(this.panelCloseAll);
             this.Controls.Add(this.button3);
-            this.Controls.Add(this.btnCloseAll);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.btnRunAll);
             this.Controls.Add(this.menu1);
@@ -514,6 +523,7 @@
             ((System.ComponentModel.ISupportInitialize)(this.nud1)).EndInit();
             this.menu1.ResumeLayout(false);
             this.menu1.PerformLayout();
+            this.panelCloseAll.ResumeLayout(false);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -524,7 +534,6 @@
 		private System.Windows.Forms.Button btnRunAll;
 		private System.Windows.Forms.CheckBox chbx1;
 		private System.Windows.Forms.GroupBox groupBox1;
-		private System.Windows.Forms.Button btnCloseAll;
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.NumericUpDown nud1;
 		private System.Windows.Forms.CheckedListBox lbx1;
@@ -559,6 +568,8 @@
         private System.Windows.Forms.Label label7;
         private System.Windows.Forms.Label label6;
         private System.Windows.Forms.ToolTip toolTip1;
+        private System.Windows.Forms.Panel panelCloseAll;
+        private System.Windows.Forms.Button btnCloseAll;
     }
 }
 
