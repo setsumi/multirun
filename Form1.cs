@@ -14,6 +14,7 @@ using System.Xml.Linq;
 using System.IO;
 using System.Reflection;
 using System.Management;
+using System.Windows.Threading;
 
 namespace multirun
 {
@@ -433,7 +434,7 @@ namespace multirun
         //==============================================================
         private void btnRunAll_Click(object sender, EventArgs e)
         {
-            notifyIcon1.Text = "multirun - RUNNING ALL";
+            notifyIcon1.Text = "multirun - Running All";
             notifyIcon1.Visible = true;
             panelCloseAll.BackColor = Color.LightPink;
             this.ActiveControl = btnCloseAll;
@@ -446,6 +447,13 @@ namespace multirun
 
         //==============================================================
         private void btnCloseAll_Click(object sender, EventArgs e)
+        {
+            panelCloseAll.BackColor = Color.Transparent;
+            this.Enabled = false;
+            Dispatcher.CurrentDispatcher.InvokeAsync(() => CloseAll(), DispatcherPriority.Background);
+        }
+
+        private void CloseAll()
         {
             // close running tasks in reverse order
             for (int i = lbx1.Items.Count - 1; i >= 0; i--)
