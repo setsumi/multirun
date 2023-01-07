@@ -33,12 +33,12 @@
             this.btnRunAll = new System.Windows.Forms.Button();
             this.chbx1 = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.chbx2 = new System.Windows.Forms.CheckBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.textBoxCmdline = new System.Windows.Forms.TextBox();
             this.textBoxExec = new System.Windows.Forms.TextBox();
             this.label7 = new System.Windows.Forms.Label();
             this.label6 = new System.Windows.Forms.Label();
-            this.label4 = new System.Windows.Forms.Label();
             this.label5 = new System.Windows.Forms.Label();
             this.nud2 = new System.Windows.Forms.NumericUpDown();
             this.label3 = new System.Windows.Forms.Label();
@@ -101,6 +101,7 @@
             this.chbx1.Size = new System.Drawing.Size(66, 17);
             this.chbx1.TabIndex = 1;
             this.chbx1.Text = "Minimize";
+            this.toolTip1.SetToolTip(this.chbx1, "Recommended increasing \"Wait some more\" time.");
             this.chbx1.UseVisualStyleBackColor = true;
             this.chbx1.Click += new System.EventHandler(this.chbx1_Click);
             // 
@@ -109,8 +110,8 @@
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.chbx2);
             this.groupBox1.Controls.Add(this.groupBox2);
-            this.groupBox1.Controls.Add(this.label4);
             this.groupBox1.Controls.Add(this.label5);
             this.groupBox1.Controls.Add(this.nud2);
             this.groupBox1.Controls.Add(this.label3);
@@ -128,6 +129,20 @@
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Drag&&drop shortcuts/exe here, Drag = rearrange, Del = remove, Ctrl+Enter = run";
+            // 
+            // chbx2
+            // 
+            this.chbx2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.chbx2.AutoSize = true;
+            this.chbx2.Enabled = false;
+            this.chbx2.Location = new System.Drawing.Point(235, 297);
+            this.chbx2.Name = "chbx2";
+            this.chbx2.Size = new System.Drawing.Size(96, 17);
+            this.chbx2.TabIndex = 13;
+            this.chbx2.Text = "Always on Top";
+            this.toolTip1.SetToolTip(this.chbx2, "Make window always on top.\r\nRecommended increasing \"Wait some more\" time.");
+            this.chbx2.UseVisualStyleBackColor = true;
+            this.chbx2.Click += new System.EventHandler(this.chbx2_Click);
             // 
             // groupBox2
             // 
@@ -185,16 +200,6 @@
             this.label6.Size = new System.Drawing.Size(60, 13);
             this.label6.TabIndex = 0;
             this.label6.Text = "Executable";
-            // 
-            // label4
-            // 
-            this.label4.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(200, 297);
-            this.label4.Name = "label4";
-            this.label4.Size = new System.Drawing.Size(58, 13);
-            this.label4.TabIndex = 11;
-            this.label4.Text = "0 = disable";
             // 
             // label5
             // 
@@ -357,19 +362,19 @@
             // 
             this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(119, 262);
+            this.label1.Location = new System.Drawing.Point(116, 262);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(67, 13);
+            this.label1.Size = new System.Drawing.Size(76, 13);
             this.label1.TabIndex = 6;
-            this.label1.Text = "Timeout (ms)";
+            this.label1.Text = "> Timeout (ms)";
             // 
             // nud1
             // 
             this.nud1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.nud1.Enabled = false;
-            this.nud1.Location = new System.Drawing.Point(192, 261);
+            this.nud1.Location = new System.Drawing.Point(198, 261);
             this.nud1.Name = "nud1";
-            this.nud1.Size = new System.Drawing.Size(75, 20);
+            this.nud1.Size = new System.Drawing.Size(69, 20);
             this.nud1.TabIndex = 7;
             this.nud1.ValueChanged += new System.EventHandler(this.nud1_ValueChanged);
             // 
@@ -560,7 +565,6 @@
 		private System.Windows.Forms.RadioButton rbtn1;
 		private System.Windows.Forms.Label label3;
 		private System.Windows.Forms.Button button3;
-		private System.Windows.Forms.Label label4;
 		private System.Windows.Forms.Label label5;
 		private System.Windows.Forms.NumericUpDown nud2;
         private System.Windows.Forms.NotifyIcon notifyIcon1;
@@ -572,6 +576,7 @@
         private System.Windows.Forms.ToolTip toolTip1;
         private System.Windows.Forms.Panel panelCloseAll;
         private System.Windows.Forms.Button btnCloseAll;
+        private System.Windows.Forms.CheckBox chbx2;
     }
 }
 

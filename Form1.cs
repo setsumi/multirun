@@ -182,6 +182,14 @@ namespace multirun
         }
 
         //==============================================================
+        const uint SWP_NOSIZE = 0x0001;
+        const uint SWP_NOMOVE = 0x0002;
+        const ulong HWND_TOPMOST = ulong.MaxValue; // (HWND)(-1)
+        [DllImport("user32.dll", EntryPoint = "SetWindowPos")]
+        static extern IntPtr SetWindowPos(IntPtr hWnd, ulong hWndInsertAfter, int x, int Y, int cx, int cy, uint wFlags);
+
+
+        //==============================================================
         public class ListItem
         {
             public bool Enabled = true;
@@ -194,13 +202,14 @@ namespace multirun
             public int WaitMore = 0;
             public string AnotherExe;
             public string AnotherCmdline;
+            public bool AlwaysOnTop = false;
 
             public ListItem(string file)
             {
                 this.File = file;
             }
             public ListItem(string file, bool minimize, int timewait, bool enabled,
-                int priority, bool waitstart, int waitmore, string anexe, string ancmdline)
+                int priority, bool waitstart, int waitmore, string anexe, string ancmdline, bool alwaysontop)
             {
                 this.File = file;
                 this.Minimize = minimize;
@@ -211,6 +220,7 @@ namespace multirun
                 this.WaitMore = waitmore;
                 this.AnotherExe = anexe;
                 this.AnotherCmdline = ancmdline;
+                this.AlwaysOnTop = alwaysontop;
             }
 
             public override string ToString() { return File; }
@@ -310,10 +320,13 @@ namespace multirun
             foreach (XElement level1Element in XElement.Load(file).Elements(element))
             {
                 string anexe = string.Empty, ancmdline = string.Empty;
+                bool aot = false;
                 try
                 {
+                    // attempt to read parameters added later
                     anexe = level1Element.Attribute("executable").Value;
                     ancmdline = level1Element.Attribute("cmdline").Value;
+                    aot = bool.Parse(level1Element.Attribute("alwaysontop").Value.ToString());
                 }
                 catch { }
                 listbox.Items.Add(new ListItem(
@@ -324,7 +337,7 @@ namespace multirun
                     int.Parse(level1Element.Attribute("priority").Value.ToString()),
                     bool.Parse(level1Element.Attribute("waitstart").Value.ToString()),
                     int.Parse(level1Element.Attribute("waitmore").Value.ToString()),
-                    anexe, ancmdline
+                    anexe, ancmdline, aot
                     ), bool.Parse(level1Element.Attribute("enabled").Value.ToString()));
             }
         }
@@ -426,6 +439,10 @@ namespace multirun
 
             itemAttribute = doc.CreateAttribute("cmdline");
             itemAttribute.Value = item.AnotherCmdline;
+            itemNode.Attributes.Append(itemAttribute);
+
+            itemAttribute = doc.CreateAttribute("alwaysontop");
+            itemAttribute.Value = item.AlwaysOnTop.ToString();
             itemNode.Attributes.Append(itemAttribute);
 
             return itemNode;
@@ -710,8 +727,13 @@ namespace multirun
                 try { proc.PriorityClass = PriorityConvert(item.Priority); }
                 catch { }
 
-                if (item.Minimize && proc.MainWindowHandle != IntPtr.Zero)
-                    ShowWindow(proc.MainWindowHandle, SW_MINIMIZE);
+                if (proc.MainWindowHandle != IntPtr.Zero)
+                {
+                    if (item.AlwaysOnTop)
+                        SetWindowPos(proc.MainWindowHandle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+                    if (item.Minimize)
+                        ShowWindow(proc.MainWindowHandle, SW_MINIMIZE);
+                }
             }
         }
 
@@ -891,6 +913,8 @@ namespace multirun
                     rbtn2.Checked = true;
                 nud2.Enabled = true;
                 nud2.Value = ((ListItem)listbox.SelectedItem).WaitMore;
+                chbx2.Enabled= true;
+                chbx2.Checked = ((ListItem)listbox.SelectedItem).AlwaysOnTop;
                 textBoxExec.Enabled = true;
                 textBoxExec.Text = ((ListItem)listbox.SelectedItem).AnotherExe;
                 textBoxCmdline.Enabled = true;
@@ -912,6 +936,8 @@ namespace multirun
                 rbtn2.Enabled = false;
                 nud2.Value = 0;
                 nud2.Enabled = false;
+                chbx2.Checked = false;
+                chbx2.Enabled = false;
                 textBoxExec.Text = string.Empty;
                 textBoxExec.Enabled = false;
                 textBoxCmdline.Text = string.Empty;
@@ -961,6 +987,12 @@ namespace multirun
             CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
             if (listbox.SelectedItem != null)
                 ((ListItem)listbox.SelectedItem).Priority = cmbbx1.SelectedIndex;
+        }
+        //==============================================================
+        private void chbx2_Click(object sender, EventArgs e)
+        {
+            CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
+            ((ListItem)listbox.SelectedItem).AlwaysOnTop = chbx2.Checked;
         }
         //==============================================================
         private void textBoxExec_TextChanged(object sender, EventArgs e)
