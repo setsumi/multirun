@@ -1,0 +1,9 @@
+﻿  pch.cpp
+  AssemblyInfo.cpp
+  TrayRefresh.cpp
+  .NETFramework,Version=v4.6.2.AssemblyAttributes.cpp
+  Generating Code...
+  nativelib.lib(TrayRefresh.obj) : MSIL .netmodule or module compiled with /GL found; restarting link with /LTCG; add /LTCG to the link command line to improve linker performance
+  Generating code
+  Finished generating code
+  wrapperlib.vcxproj -> E:\MAIN\mc\multirun\x64\Release\wrapperlib.dll

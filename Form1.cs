@@ -15,6 +15,7 @@ using System.IO;
 using System.Reflection;
 using System.Management;
 using System.Windows.Threading;
+using System.Threading.Tasks;
 
 namespace multirun
 {
@@ -523,8 +524,12 @@ namespace multirun
                 if (item.Enabled)
                     RunIt(item);
 
-            RefreshSystray();
-            this.Close();
+            //RefreshSystray(); // obsolete way of doing it
+            Task.Delay(500).ContinueWith(task =>
+            {
+                CLI.TrayRefresh tr = new CLI.TrayRefresh();
+                this.Close();
+            });
         }
 
         //==============================================================
@@ -913,7 +918,7 @@ namespace multirun
                     rbtn2.Checked = true;
                 nud2.Enabled = true;
                 nud2.Value = ((ListItem)listbox.SelectedItem).WaitMore;
-                chbx2.Enabled= true;
+                chbx2.Enabled = true;
                 chbx2.Checked = ((ListItem)listbox.SelectedItem).AlwaysOnTop;
                 textBoxExec.Enabled = true;
                 textBoxExec.Text = ((ListItem)listbox.SelectedItem).AnotherExe;
@@ -1075,30 +1080,30 @@ namespace multirun
         }
 
         //==============================================================
-        private void RefreshSystray()
-        {
-            IntPtr hNotificationArea = FindWindowEx(FindWindowEx(FindWindowEx(FindWindowEx(
-              IntPtr.Zero, IntPtr.Zero, "Shell_TrayWnd", null),
-              IntPtr.Zero, "TrayNotifyWnd", null),
-              IntPtr.Zero, "SysPager", null),
-              IntPtr.Zero, "ToolbarWindow32", null);
-            RECT r;
-            GetClientRect(hNotificationArea, out r);
+        //private void RefreshSystray()
+        //{
+        //    IntPtr hNotificationArea = FindWindowEx(FindWindowEx(FindWindowEx(FindWindowEx(
+        //      IntPtr.Zero, IntPtr.Zero, "Shell_TrayWnd", null),
+        //      IntPtr.Zero, "TrayNotifyWnd", null),
+        //      IntPtr.Zero, "SysPager", null),
+        //      IntPtr.Zero, "ToolbarWindow32", null);
+        //    RECT r;
+        //    GetClientRect(hNotificationArea, out r);
 
-            //Now we've got the area, force it to update
-            //by sending mouse messages to it.
-            int x = 0, y = 0;
-            while (x < r.Right)
-            {
-                while (y < r.Bottom)
-                {
-                    PostMessage(hNotificationArea, WM_MOUSEMOVE, 0, (y << 16) + x);
-                    y += 5;
-                }
-                y = 0;
-                x += 5;
-            }
-        }
+        //    //Now we've got the area, force it to update
+        //    //by sending mouse messages to it.
+        //    int x = 0, y = 0;
+        //    while (x < r.Right)
+        //    {
+        //        while (y < r.Bottom)
+        //        {
+        //            PostMessage(hNotificationArea, WM_MOUSEMOVE, 0, (y << 16) + x);
+        //            y += 5;
+        //        }
+        //        y = 0;
+        //        x += 5;
+        //    }
+        //}
 
         //==============================================================
         const int WM_NCRBUTTONDOWN = 0x00A4;
