@@ -230,6 +230,7 @@ namespace multirun
         private string appfolder;
         private string configfile;
         private string profilefile;
+        private bool newTrayRefreshMethod = true;
 
         private bool mouse_drag = false;
         private bool mouse_down = false;
@@ -291,6 +292,7 @@ namespace multirun
             {
                 this.Width = Int32.Parse(level1Element.Attribute("window-width").Value);
                 this.Height = Int32.Parse(level1Element.Attribute("window-height").Value);
+                newTrayRefreshMethod = bool.Parse(level1Element.Attribute("new-tray-refresh-method").Value);
             }
             catch { }
         }
@@ -371,6 +373,10 @@ namespace multirun
 
             optionAttribute = doc.CreateAttribute("window-height");
             optionAttribute.Value = this.Height.ToString();
+            configNode.Attributes.Append(optionAttribute);
+
+            optionAttribute = doc.CreateAttribute("new-tray-refresh-method");
+            optionAttribute.Value = newTrayRefreshMethod.ToString();
             configNode.Attributes.Append(optionAttribute);
 
             rootNode.AppendChild(configNode);
@@ -523,7 +529,25 @@ namespace multirun
                 if (item.Enabled)
                     RunIt(item);
 
-            RefreshSystray();
+            if (newTrayRefreshMethod)
+            {
+                ProcessStartInfo startInfo = new ProcessStartInfo();
+                startInfo.FileName = appfolder + "TrayCleanup.exe";
+                //startInfo.Arguments = args;
+                startInfo.RedirectStandardOutput = true;
+                startInfo.RedirectStandardError = true;
+                startInfo.UseShellExecute = false;
+                startInfo.CreateNoWindow = true;
+                Process processTemp = new Process();
+                processTemp.StartInfo = startInfo;
+                processTemp.EnableRaisingEvents = true;
+                processTemp.Start();
+                if (!processTemp.WaitForExit(2000)) throw new Exception(startInfo.FileName + " not exited after 2 seconds.");
+            }
+            else
+            {
+                RefreshSystray();
+            }
             this.Close();
         }
 
@@ -913,7 +937,7 @@ namespace multirun
                     rbtn2.Checked = true;
                 nud2.Enabled = true;
                 nud2.Value = ((ListItem)listbox.SelectedItem).WaitMore;
-                chbx2.Enabled= true;
+                chbx2.Enabled = true;
                 chbx2.Checked = ((ListItem)listbox.SelectedItem).AlwaysOnTop;
                 textBoxExec.Enabled = true;
                 textBoxExec.Text = ((ListItem)listbox.SelectedItem).AnotherExe;
