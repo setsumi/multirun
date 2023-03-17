@@ -534,9 +534,10 @@ namespace multirun
                 ProcessStartInfo startInfo = new ProcessStartInfo();
                 startInfo.FileName = appfolder + "TrayCleanup.exe";
                 //startInfo.Arguments = args;
-                startInfo.RedirectStandardOutput = true;
-                startInfo.RedirectStandardError = true;
-                startInfo.UseShellExecute = false;
+                startInfo.Verb = "runas";
+                //startInfo.RedirectStandardOutput = true;
+                //startInfo.RedirectStandardError = true;
+                startInfo.UseShellExecute = true;
                 startInfo.CreateNoWindow = true;
                 Process processTemp = new Process();
                 processTemp.StartInfo = startInfo;
