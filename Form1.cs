@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Data;
 using System.Drawing;
 using System.Linq;
-using System.Text;
 using System.Windows.Forms;
 using System.Diagnostics;
 using System.Threading;
@@ -134,6 +132,7 @@ namespace multirun
         //==============================================================
         private const int SW_MAXIMIZE = 3;
         private const int SW_MINIMIZE = 6;
+        private const int SW_RESTORE = 9;
 
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
@@ -143,6 +142,11 @@ namespace multirun
         private const uint WM_CLOSE = 0x0010;
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         static extern IntPtr PostMessage(IntPtr hWnd, uint Msg, int wParam, int lParam);
+
+        //==============================================================
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool IsIconic(IntPtr hWnd);
 
         //-----------------
         private enum GWL : int
@@ -203,13 +207,16 @@ namespace multirun
             public string AnotherExe;
             public string AnotherCmdline;
             public bool AlwaysOnTop = false;
+            public bool RestoreOnClose = false;
+            public bool CloseTree = false;
 
             public ListItem(string file)
             {
                 this.File = file;
             }
-            public ListItem(string file, bool minimize, int timewait, bool enabled,
-                int priority, bool waitstart, int waitmore, string anexe, string ancmdline, bool alwaysontop)
+            public ListItem(string file, bool minimize, int timewait, bool enabled, int priority,
+                bool waitstart, int waitmore, string anexe, string ancmdline, bool alwaysontop,
+                bool restoreonclose, bool closetree)
             {
                 this.File = file;
                 this.Minimize = minimize;
@@ -221,6 +228,8 @@ namespace multirun
                 this.AnotherExe = anexe;
                 this.AnotherCmdline = ancmdline;
                 this.AlwaysOnTop = alwaysontop;
+                this.RestoreOnClose = restoreonclose;
+                this.CloseTree = closetree;
             }
 
             public override string ToString() { return File; }
@@ -322,13 +331,15 @@ namespace multirun
             foreach (XElement level1Element in XElement.Load(file).Elements(element))
             {
                 string anexe = string.Empty, ancmdline = string.Empty;
-                bool aot = false;
+                bool aot = false, restoreonclose = false, closetree = false;
                 try
                 {
                     // attempt to read parameters added later
                     anexe = level1Element.Attribute("executable").Value;
                     ancmdline = level1Element.Attribute("cmdline").Value;
                     aot = bool.Parse(level1Element.Attribute("alwaysontop").Value.ToString());
+                    restoreonclose = bool.Parse(level1Element.Attribute("restoreonclose").Value.ToString());
+                    closetree = bool.Parse(level1Element.Attribute("closetree").Value.ToString());
                 }
                 catch { }
                 listbox.Items.Add(new ListItem(
@@ -339,7 +350,7 @@ namespace multirun
                     int.Parse(level1Element.Attribute("priority").Value.ToString()),
                     bool.Parse(level1Element.Attribute("waitstart").Value.ToString()),
                     int.Parse(level1Element.Attribute("waitmore").Value.ToString()),
-                    anexe, ancmdline, aot
+                    anexe, ancmdline, aot, restoreonclose, closetree
                     ), bool.Parse(level1Element.Attribute("enabled").Value.ToString()));
             }
         }
@@ -451,6 +462,14 @@ namespace multirun
             itemAttribute.Value = item.AlwaysOnTop.ToString();
             itemNode.Attributes.Append(itemAttribute);
 
+            itemAttribute = doc.CreateAttribute("restoreonclose");
+            itemAttribute.Value = item.RestoreOnClose.ToString();
+            itemNode.Attributes.Append(itemAttribute);
+
+            itemAttribute = doc.CreateAttribute("closetree");
+            itemAttribute.Value = item.CloseTree.ToString();
+            itemNode.Attributes.Append(itemAttribute);
+
             return itemNode;
         }
 
@@ -487,39 +506,27 @@ namespace multirun
                     Process p = GetActiveProcess(item);
                     if (p != null)
                     {
-                        IntPtr hmain = IntPtr.Zero;
-                        if (p.MainWindowHandle != IntPtr.Zero)
+                        if (item.RestoreOnClose)
                         {
-                            hmain = p.MainWindowHandle;
-                            try { p.CloseMainWindow(); }
-                            catch { }
-                        }
-                        if (hmain == IntPtr.Zero || !p.WaitForExit(1000))
-                        {
-                            foreach (var handle in EnumerateProcessWindowHandles(p.Id))
+                            if (p.MainWindowHandle != IntPtr.Zero)
                             {
-                                IntPtr style = GetWindowLong(handle, (int)GWL.GWL_STYLE);
-                                if (((UInt64)style & (UInt64)WindowStyles.WS_POPUP) != 0)
-                                {
-                                }
-                                else if (((UInt64)style & (UInt64)WindowStyles.WS_CHILD) != 0)
-                                {
-                                }
-                                else // WS_OVERLAPPED
-                                {
-                                    // close all overlapped windows
-                                    if (handle != hmain)
-                                        PostMessage(handle, WM_CLOSE, 0, 0);
-                                }
-                            }
-                            if (!p.WaitForExit(1000))
-                            {
-                                p.Kill();
+                                if (IsIconic(p.MainWindowHandle)) ShowWindow(p.MainWindowHandle, SW_RESTORE);
                             }
                         }
-                        p.Close();
-                        p.Dispose();
-                        Thread.Sleep(50);
+
+                        if (item.CloseTree)
+                        {
+                            var descendants = ProcessHelpers.GetDescendantProcesses(p.Id);
+                            CloseProcess(p);
+                            foreach (var descendant in descendants)
+                            {
+                                CloseProcess(descendant);
+                            }
+                        }
+                        else
+                        {
+                            CloseProcess(p);
+                        }
                     }
                 }
             }
@@ -550,6 +557,53 @@ namespace multirun
                 RefreshSystray();
             }
             this.Close();
+        }
+
+        private void CloseProcess(Process p)
+        {
+            if (p == null) return;
+            p.Refresh();
+            if (p.HasExited)
+            {
+                p.Close();
+                p.Dispose();
+            }
+            else
+            {
+                IntPtr hmain = IntPtr.Zero;
+                if (p.MainWindowHandle != IntPtr.Zero)
+                {
+                    hmain = p.MainWindowHandle;
+                    try { p.CloseMainWindow(); }
+                    catch { }
+                }
+                if (hmain == IntPtr.Zero || !p.WaitForExit(1000))
+                {
+                    foreach (var handle in EnumerateProcessWindowHandles(p.Id))
+                    {
+                        IntPtr style = GetWindowLong(handle, (int)GWL.GWL_STYLE);
+                        if (((UInt64)style & (UInt64)WindowStyles.WS_POPUP) != 0)
+                        {
+                        }
+                        else if (((UInt64)style & (UInt64)WindowStyles.WS_CHILD) != 0)
+                        {
+                        }
+                        else // WS_OVERLAPPED
+                        {
+                            // close all overlapped windows
+                            if (handle != hmain)
+                                PostMessage(handle, WM_CLOSE, 0, 0);
+                        }
+                    }
+                    if (!p.WaitForExit(1000))
+                    {
+                        p.Kill();
+                    }
+                }
+                p.Close();
+                p.Dispose();
+                Thread.Sleep(50);
+            }
         }
 
         //==============================================================
@@ -944,6 +998,10 @@ namespace multirun
                 textBoxExec.Text = ((ListItem)listbox.SelectedItem).AnotherExe;
                 textBoxCmdline.Enabled = true;
                 textBoxCmdline.Text = ((ListItem)listbox.SelectedItem).AnotherCmdline;
+                chbxRestoreOnClose.Enabled = true;
+                chbxRestoreOnClose.Checked = ((ListItem)listbox.SelectedItem).RestoreOnClose;
+                chbxCloseTree.Enabled = true;
+                chbxCloseTree.Checked = ((ListItem)listbox.SelectedItem).CloseTree;
 
                 button3.Enabled = true;
             }
@@ -967,6 +1025,10 @@ namespace multirun
                 textBoxExec.Enabled = false;
                 textBoxCmdline.Text = string.Empty;
                 textBoxCmdline.Enabled = false;
+                chbxRestoreOnClose.Checked = false;
+                chbxRestoreOnClose.Enabled = false;
+                chbxCloseTree.Checked = false;
+                chbxCloseTree.Enabled = false;
 
                 button3.Enabled = false;
             }
@@ -1043,6 +1105,18 @@ namespace multirun
         {
             CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
             ((ListItem)listbox.SelectedItem).Waitstart = rbtn1.Checked;
+        }
+        //==============================================================
+        private void chbxRestoreOnClose_Click(object sender, EventArgs e)
+        {
+            CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
+            ((ListItem)listbox.SelectedItem).RestoreOnClose = chbxRestoreOnClose.Checked;
+        }
+        //==============================================================
+        private void chbxCloseTree_Click(object sender, EventArgs e)
+        {
+            CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
+            ((ListItem)listbox.SelectedItem).CloseTree = chbxCloseTree.Checked;
         }
 
         //==============================================================

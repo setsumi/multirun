@@ -69,6 +69,8 @@
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.panelCloseAll = new System.Windows.Forms.Panel();
             this.btnCloseAll = new System.Windows.Forms.Button();
+            this.chbxRestoreOnClose = new System.Windows.Forms.CheckBox();
+            this.chbxCloseTree = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nud2)).BeginInit();
@@ -83,7 +85,7 @@
             // btnRunAll
             // 
             this.btnRunAll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.btnRunAll.Location = new System.Drawing.Point(12, 355);
+            this.btnRunAll.Location = new System.Drawing.Point(12, 405);
             this.btnRunAll.Name = "btnRunAll";
             this.btnRunAll.Size = new System.Drawing.Size(75, 23);
             this.btnRunAll.TabIndex = 2;
@@ -96,7 +98,7 @@
             this.chbx1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.chbx1.AutoSize = true;
             this.chbx1.Enabled = false;
-            this.chbx1.Location = new System.Drawing.Point(12, 226);
+            this.chbx1.Location = new System.Drawing.Point(10, 225);
             this.chbx1.Name = "chbx1";
             this.chbx1.Size = new System.Drawing.Size(66, 17);
             this.chbx1.TabIndex = 1;
@@ -110,6 +112,8 @@
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.chbxCloseTree);
+            this.groupBox1.Controls.Add(this.chbxRestoreOnClose);
             this.groupBox1.Controls.Add(this.chbx2);
             this.groupBox1.Controls.Add(this.groupBox2);
             this.groupBox1.Controls.Add(this.label5);
@@ -125,7 +129,7 @@
             this.groupBox1.Controls.Add(this.chbx1);
             this.groupBox1.Location = new System.Drawing.Point(12, 27);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(511, 322);
+            this.groupBox1.Size = new System.Drawing.Size(511, 370);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Drag&&drop shortcuts/exe here, Drag = rearrange, Del = remove, Ctrl+Enter = run";
@@ -135,7 +139,7 @@
             this.chbx2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.chbx2.AutoSize = true;
             this.chbx2.Enabled = false;
-            this.chbx2.Location = new System.Drawing.Point(235, 297);
+            this.chbx2.Location = new System.Drawing.Point(233, 296);
             this.chbx2.Name = "chbx2";
             this.chbx2.Size = new System.Drawing.Size(96, 17);
             this.chbx2.TabIndex = 13;
@@ -152,7 +156,7 @@
             this.groupBox2.Controls.Add(this.textBoxExec);
             this.groupBox2.Controls.Add(this.label7);
             this.groupBox2.Controls.Add(this.label6);
-            this.groupBox2.Location = new System.Drawing.Point(337, 222);
+            this.groupBox2.Location = new System.Drawing.Point(335, 221);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(168, 95);
             this.groupBox2.TabIndex = 12;
@@ -205,7 +209,7 @@
             // 
             this.label5.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(8, 297);
+            this.label5.Location = new System.Drawing.Point(6, 296);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(105, 13);
             this.label5.TabIndex = 9;
@@ -215,7 +219,7 @@
             // 
             this.nud2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.nud2.Enabled = false;
-            this.nud2.Location = new System.Drawing.Point(119, 295);
+            this.nud2.Location = new System.Drawing.Point(117, 294);
             this.nud2.Name = "nud2";
             this.nud2.Size = new System.Drawing.Size(75, 20);
             this.nud2.TabIndex = 10;
@@ -226,7 +230,7 @@
             this.label3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label3.AutoSize = true;
             this.label3.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
-            this.label3.Location = new System.Drawing.Point(273, 263);
+            this.label3.Location = new System.Drawing.Point(271, 262);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(58, 13);
             this.label3.TabIndex = 8;
@@ -237,7 +241,7 @@
             this.rbtn2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.rbtn2.AutoSize = true;
             this.rbtn2.Enabled = false;
-            this.rbtn2.Location = new System.Drawing.Point(12, 272);
+            this.rbtn2.Location = new System.Drawing.Point(10, 271);
             this.rbtn2.Name = "rbtn2";
             this.rbtn2.Size = new System.Drawing.Size(101, 17);
             this.rbtn2.TabIndex = 5;
@@ -251,7 +255,7 @@
             this.rbtn1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.rbtn1.AutoSize = true;
             this.rbtn1.Enabled = false;
-            this.rbtn1.Location = new System.Drawing.Point(12, 249);
+            this.rbtn1.Location = new System.Drawing.Point(10, 248);
             this.rbtn1.Name = "rbtn1";
             this.rbtn1.Size = new System.Drawing.Size(108, 17);
             this.rbtn1.TabIndex = 4;
@@ -342,7 +346,7 @@
             this.cmbbx1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbbx1.Enabled = false;
             this.cmbbx1.FormattingEnabled = true;
-            this.cmbbx1.Location = new System.Drawing.Point(160, 226);
+            this.cmbbx1.Location = new System.Drawing.Point(158, 225);
             this.cmbbx1.Name = "cmbbx1";
             this.cmbbx1.Size = new System.Drawing.Size(106, 21);
             this.cmbbx1.TabIndex = 3;
@@ -352,7 +356,7 @@
             // 
             this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(116, 227);
+            this.label2.Location = new System.Drawing.Point(114, 226);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(38, 13);
             this.label2.TabIndex = 2;
@@ -362,7 +366,7 @@
             // 
             this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(116, 262);
+            this.label1.Location = new System.Drawing.Point(114, 261);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(76, 13);
             this.label1.TabIndex = 6;
@@ -372,7 +376,7 @@
             // 
             this.nud1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.nud1.Enabled = false;
-            this.nud1.Location = new System.Drawing.Point(198, 261);
+            this.nud1.Location = new System.Drawing.Point(196, 260);
             this.nud1.Name = "nud1";
             this.nud1.Size = new System.Drawing.Size(69, 20);
             this.nud1.TabIndex = 7;
@@ -468,7 +472,7 @@
             // 
             this.button3.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.button3.Enabled = false;
-            this.button3.Location = new System.Drawing.Point(121, 355);
+            this.button3.Location = new System.Drawing.Point(121, 405);
             this.button3.Name = "button3";
             this.button3.Size = new System.Drawing.Size(92, 23);
             this.button3.TabIndex = 3;
@@ -487,7 +491,7 @@
             // 
             this.panelCloseAll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.panelCloseAll.Controls.Add(this.btnCloseAll);
-            this.panelCloseAll.Location = new System.Drawing.Point(442, 350);
+            this.panelCloseAll.Location = new System.Drawing.Point(442, 400);
             this.panelCloseAll.Name = "panelCloseAll";
             this.panelCloseAll.Size = new System.Drawing.Size(93, 36);
             this.panelCloseAll.TabIndex = 5;
@@ -503,11 +507,39 @@
             this.btnCloseAll.UseVisualStyleBackColor = true;
             this.btnCloseAll.Click += new System.EventHandler(this.btnCloseAll_Click);
             // 
+            // chbxRestoreOnClose
+            // 
+            this.chbxRestoreOnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.chbxRestoreOnClose.AutoSize = true;
+            this.chbxRestoreOnClose.Enabled = false;
+            this.chbxRestoreOnClose.Location = new System.Drawing.Point(335, 322);
+            this.chbxRestoreOnClose.Name = "chbxRestoreOnClose";
+            this.chbxRestoreOnClose.Size = new System.Drawing.Size(106, 17);
+            this.chbxRestoreOnClose.TabIndex = 14;
+            this.chbxRestoreOnClose.Text = "Restore on close";
+            this.toolTip1.SetToolTip(this.chbxRestoreOnClose, "If minimized restore window before closing");
+            this.chbxRestoreOnClose.UseVisualStyleBackColor = true;
+            this.chbxRestoreOnClose.Click += new System.EventHandler(this.chbxRestoreOnClose_Click);
+            // 
+            // chbxCloseTree
+            // 
+            this.chbxCloseTree.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.chbxCloseTree.AutoSize = true;
+            this.chbxCloseTree.Enabled = false;
+            this.chbxCloseTree.Location = new System.Drawing.Point(335, 345);
+            this.chbxCloseTree.Name = "chbxCloseTree";
+            this.chbxCloseTree.Size = new System.Drawing.Size(113, 17);
+            this.chbxCloseTree.TabIndex = 15;
+            this.chbxCloseTree.Text = "Close process tree";
+            this.toolTip1.SetToolTip(this.chbxCloseTree, "Close also the process descendants tree");
+            this.chbxCloseTree.UseVisualStyleBackColor = true;
+            this.chbxCloseTree.Click += new System.EventHandler(this.chbxCloseTree_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(535, 389);
+            this.ClientSize = new System.Drawing.Size(535, 439);
             this.Controls.Add(this.panelCloseAll);
             this.Controls.Add(this.button3);
             this.Controls.Add(this.groupBox1);
@@ -577,6 +609,8 @@
         private System.Windows.Forms.Panel panelCloseAll;
         private System.Windows.Forms.Button btnCloseAll;
         private System.Windows.Forms.CheckBox chbx2;
+        private System.Windows.Forms.CheckBox chbxCloseTree;
+        private System.Windows.Forms.CheckBox chbxRestoreOnClose;
     }
 }
 
