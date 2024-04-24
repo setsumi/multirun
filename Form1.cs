@@ -287,7 +287,9 @@ namespace multirun
         //==============================================================
         private void UpdateTitle()
         {
-            this.Text = "Multirun - " + Path.GetFileNameWithoutExtension(profilefile);
+            var config = Path.GetFileNameWithoutExtension(profilefile);
+            this.Text = $"Multirun - {config}";
+            notifyIcon1.Text = config;
         }
 
         //==============================================================
@@ -476,7 +478,8 @@ namespace multirun
         //==============================================================
         private void btnRunAll_Click(object sender, EventArgs e)
         {
-            notifyIcon1.Text = "multirun - Running All";
+            var suffix = " - Running All";
+            if (!notifyIcon1.Text.EndsWith(suffix)) notifyIcon1.Text += suffix;
             notifyIcon1.Visible = true;
             panelCloseAll.BackColor = Color.LightPink;
             this.ActiveControl = btnCloseAll;

@@ -33,6 +33,8 @@
             this.btnRunAll = new System.Windows.Forms.Button();
             this.chbx1 = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.chbxCloseTree = new System.Windows.Forms.CheckBox();
+            this.chbxRestoreOnClose = new System.Windows.Forms.CheckBox();
             this.chbx2 = new System.Windows.Forms.CheckBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.textBoxCmdline = new System.Windows.Forms.TextBox();
@@ -69,8 +71,6 @@
             this.toolTip1 = new System.Windows.Forms.ToolTip(this.components);
             this.panelCloseAll = new System.Windows.Forms.Panel();
             this.btnCloseAll = new System.Windows.Forms.Button();
-            this.chbxRestoreOnClose = new System.Windows.Forms.CheckBox();
-            this.chbxCloseTree = new System.Windows.Forms.CheckBox();
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nud2)).BeginInit();
@@ -132,7 +132,36 @@
             this.groupBox1.Size = new System.Drawing.Size(511, 370);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
-            this.groupBox1.Text = "Drag&&drop shortcuts/exe here, Drag = rearrange, Del = remove, Ctrl+Enter = run";
+            this.groupBox1.Text = "Drag&&drop shortcuts/exe here, Drag = rearrange, Del = remove, Ctrl+Enter = run s" +
+    "elected";
+            // 
+            // chbxCloseTree
+            // 
+            this.chbxCloseTree.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.chbxCloseTree.AutoSize = true;
+            this.chbxCloseTree.Enabled = false;
+            this.chbxCloseTree.Location = new System.Drawing.Point(335, 345);
+            this.chbxCloseTree.Name = "chbxCloseTree";
+            this.chbxCloseTree.Size = new System.Drawing.Size(113, 17);
+            this.chbxCloseTree.TabIndex = 15;
+            this.chbxCloseTree.Text = "Close process tree";
+            this.toolTip1.SetToolTip(this.chbxCloseTree, "Close also the process descendants tree");
+            this.chbxCloseTree.UseVisualStyleBackColor = true;
+            this.chbxCloseTree.Click += new System.EventHandler(this.chbxCloseTree_Click);
+            // 
+            // chbxRestoreOnClose
+            // 
+            this.chbxRestoreOnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.chbxRestoreOnClose.AutoSize = true;
+            this.chbxRestoreOnClose.Enabled = false;
+            this.chbxRestoreOnClose.Location = new System.Drawing.Point(335, 322);
+            this.chbxRestoreOnClose.Name = "chbxRestoreOnClose";
+            this.chbxRestoreOnClose.Size = new System.Drawing.Size(106, 17);
+            this.chbxRestoreOnClose.TabIndex = 14;
+            this.chbxRestoreOnClose.Text = "Restore on close";
+            this.toolTip1.SetToolTip(this.chbxRestoreOnClose, "If minimized restore window before closing");
+            this.chbxRestoreOnClose.UseVisualStyleBackColor = true;
+            this.chbxRestoreOnClose.Click += new System.EventHandler(this.chbxRestoreOnClose_Click);
             // 
             // chbx2
             // 
@@ -477,6 +506,7 @@
             this.button3.Size = new System.Drawing.Size(92, 23);
             this.button3.TabIndex = 3;
             this.button3.Text = "Run Selected";
+            this.toolTip1.SetToolTip(this.button3, "(Ctrl+Enter)");
             this.button3.UseVisualStyleBackColor = true;
             this.button3.Click += new System.EventHandler(this.button3_Click);
             // 
@@ -506,34 +536,6 @@
             this.btnCloseAll.Text = "Close All";
             this.btnCloseAll.UseVisualStyleBackColor = true;
             this.btnCloseAll.Click += new System.EventHandler(this.btnCloseAll_Click);
-            // 
-            // chbxRestoreOnClose
-            // 
-            this.chbxRestoreOnClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.chbxRestoreOnClose.AutoSize = true;
-            this.chbxRestoreOnClose.Enabled = false;
-            this.chbxRestoreOnClose.Location = new System.Drawing.Point(335, 322);
-            this.chbxRestoreOnClose.Name = "chbxRestoreOnClose";
-            this.chbxRestoreOnClose.Size = new System.Drawing.Size(106, 17);
-            this.chbxRestoreOnClose.TabIndex = 14;
-            this.chbxRestoreOnClose.Text = "Restore on close";
-            this.toolTip1.SetToolTip(this.chbxRestoreOnClose, "If minimized restore window before closing");
-            this.chbxRestoreOnClose.UseVisualStyleBackColor = true;
-            this.chbxRestoreOnClose.Click += new System.EventHandler(this.chbxRestoreOnClose_Click);
-            // 
-            // chbxCloseTree
-            // 
-            this.chbxCloseTree.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.chbxCloseTree.AutoSize = true;
-            this.chbxCloseTree.Enabled = false;
-            this.chbxCloseTree.Location = new System.Drawing.Point(335, 345);
-            this.chbxCloseTree.Name = "chbxCloseTree";
-            this.chbxCloseTree.Size = new System.Drawing.Size(113, 17);
-            this.chbxCloseTree.TabIndex = 15;
-            this.chbxCloseTree.Text = "Close process tree";
-            this.toolTip1.SetToolTip(this.chbxCloseTree, "Close also the process descendants tree");
-            this.chbxCloseTree.UseVisualStyleBackColor = true;
-            this.chbxCloseTree.Click += new System.EventHandler(this.chbxCloseTree_Click);
             // 
             // Form1
             // 
