@@ -478,7 +478,7 @@ namespace multirun
         //==============================================================
         private void btnRunAll_Click(object sender, EventArgs e)
         {
-            var suffix = " - Running All";
+            var suffix = " - [Running All]";
             if (!notifyIcon1.Text.EndsWith(suffix)) notifyIcon1.Text += suffix;
             notifyIcon1.Visible = true;
             panelCloseAll.BackColor = Color.LightPink;
