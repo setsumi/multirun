@@ -130,23 +130,21 @@ namespace multirun
         //static extern int SendMessage(IntPtr hWnd, uint Msg, int wParam, int lParam);
 
         //==============================================================
-        private const int SW_MAXIMIZE = 3;
         private const int SW_MINIMIZE = 6;
         private const int SW_RESTORE = 9;
-
         [DllImport("user32.dll")]
         [return: MarshalAs(UnmanagedType.Bool)]
         static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
 
         //==============================================================
+        [DllImport("user32.dll")]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        static extern bool IsWindowVisible(IntPtr hWnd);
+
+        //==============================================================
         private const uint WM_CLOSE = 0x0010;
         [DllImport("user32.dll", CharSet = CharSet.Auto)]
         static extern IntPtr PostMessage(IntPtr hWnd, uint Msg, int wParam, int lParam);
-
-        //==============================================================
-        [DllImport("user32.dll")]
-        [return: MarshalAs(UnmanagedType.Bool)]
-        static extern bool IsIconic(IntPtr hWnd);
 
         //-----------------
         private enum GWL : int
@@ -511,9 +509,16 @@ namespace multirun
                     {
                         if (item.RestoreOnClose)
                         {
-                            if (p.MainWindowHandle != IntPtr.Zero)
+                            foreach (var handle in EnumerateProcessWindowHandles(p.Id))
                             {
-                                if (IsIconic(p.MainWindowHandle)) ShowWindow(p.MainWindowHandle, SW_RESTORE);
+                                IntPtr style = GetWindowLong(handle, (int)GWL.GWL_STYLE);
+                                if (((UInt64)style & (UInt64)WindowStyles.WS_POPUP) != 0) { }
+                                else if (((UInt64)style & (UInt64)WindowStyles.WS_CHILD) != 0) { }
+                                else // WS_OVERLAPPED
+                                {
+                                    if (IsWindowVisible(handle))
+                                        ShowWindow(handle, SW_RESTORE);
+                                }
                             }
                         }
 
@@ -585,12 +590,8 @@ namespace multirun
                     foreach (var handle in EnumerateProcessWindowHandles(p.Id))
                     {
                         IntPtr style = GetWindowLong(handle, (int)GWL.GWL_STYLE);
-                        if (((UInt64)style & (UInt64)WindowStyles.WS_POPUP) != 0)
-                        {
-                        }
-                        else if (((UInt64)style & (UInt64)WindowStyles.WS_CHILD) != 0)
-                        {
-                        }
+                        if (((UInt64)style & (UInt64)WindowStyles.WS_POPUP) != 0) { }
+                        else if (((UInt64)style & (UInt64)WindowStyles.WS_CHILD) != 0) { }
                         else // WS_OVERLAPPED
                         {
                             // close all overlapped windows
