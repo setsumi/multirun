@@ -172,13 +172,29 @@ namespace multirun
         [DllImport("user32.dll")]
         static extern bool EnumThreadWindows(int dwThreadId, EnumThreadDelegate lpfn, IntPtr lParam);
 
-        static IEnumerable<IntPtr> EnumerateProcessWindowHandles(int processId)
+        static IEnumerable<IntPtr> EnumerateProcessWindowHandles(int processId, bool overlapped)
         {
             var handles = new List<IntPtr>();
 
             foreach (ProcessThread thread in Process.GetProcessById(processId).Threads)
-                EnumThreadWindows(thread.Id,
-                        (hWnd, lParam) => { handles.Add(hWnd); return true; }, IntPtr.Zero);
+                EnumThreadWindows(thread.Id, (hWnd, lParam) =>
+                {
+                    if (overlapped)
+                    {
+                        IntPtr style = GetWindowLong(hWnd, (int)GWL.GWL_STYLE);
+                        if (((UInt64)style & (UInt64)WindowStyles.WS_POPUP) != 0) { }
+                        else if (((UInt64)style & (UInt64)WindowStyles.WS_CHILD) != 0) { }
+                        else // WS_OVERLAPPED
+                        {
+                            handles.Add(hWnd);
+                        }
+                    }
+                    else
+                    {
+                        handles.Add(hWnd);
+                    }
+                    return true;
+                }, IntPtr.Zero);
 
             return handles;
         }
@@ -509,16 +525,10 @@ namespace multirun
                     {
                         if (item.RestoreOnClose)
                         {
-                            foreach (var handle in EnumerateProcessWindowHandles(p.Id))
+                            foreach (var handle in EnumerateProcessWindowHandles(p.Id, true))
                             {
-                                IntPtr style = GetWindowLong(handle, (int)GWL.GWL_STYLE);
-                                if (((UInt64)style & (UInt64)WindowStyles.WS_POPUP) != 0) { }
-                                else if (((UInt64)style & (UInt64)WindowStyles.WS_CHILD) != 0) { }
-                                else // WS_OVERLAPPED
-                                {
-                                    if (IsWindowVisible(handle))
-                                        ShowWindow(handle, SW_RESTORE);
-                                }
+                                if (IsWindowVisible(handle))
+                                    ShowWindow(handle, SW_RESTORE);
                             }
                         }
 
@@ -587,17 +597,11 @@ namespace multirun
                 }
                 if (hmain == IntPtr.Zero || !p.WaitForExit(1000))
                 {
-                    foreach (var handle in EnumerateProcessWindowHandles(p.Id))
+                    foreach (var handle in EnumerateProcessWindowHandles(p.Id, true))
                     {
-                        IntPtr style = GetWindowLong(handle, (int)GWL.GWL_STYLE);
-                        if (((UInt64)style & (UInt64)WindowStyles.WS_POPUP) != 0) { }
-                        else if (((UInt64)style & (UInt64)WindowStyles.WS_CHILD) != 0) { }
-                        else // WS_OVERLAPPED
-                        {
-                            // close all overlapped windows
-                            if (handle != hmain)
-                                PostMessage(handle, WM_CLOSE, 0, 0);
-                        }
+                        // close all overlapped windows
+                        if (handle != hmain)
+                            PostMessage(handle, WM_CLOSE, 0, 0);
                     }
                     if (!p.WaitForExit(1000))
                     {
