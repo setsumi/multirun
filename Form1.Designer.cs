@@ -92,6 +92,7 @@
             this.btnRunAll.Text = "Run All";
             this.btnRunAll.UseVisualStyleBackColor = true;
             this.btnRunAll.Click += new System.EventHandler(this.btnRunAll_Click);
+            this.btnRunAll.Enter += new System.EventHandler(this.btnRunAll_Enter);
             // 
             // chbx1
             // 
@@ -536,6 +537,7 @@
             this.btnCloseAll.Text = "Close All";
             this.btnCloseAll.UseVisualStyleBackColor = true;
             this.btnCloseAll.Click += new System.EventHandler(this.btnCloseAll_Click);
+            this.btnCloseAll.Enter += new System.EventHandler(this.btnRunAll_Enter);
             // 
             // Form1
             // 

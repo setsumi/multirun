@@ -1227,5 +1227,12 @@ namespace multirun
         }
 
         //==============================================================
+        private void btnRunAll_Enter(object sender, EventArgs e)
+        {
+            CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
+            listbox.ClearSelected();
+        }
+
+        //==============================================================
     }
 }
