@@ -12,7 +12,6 @@ using System.Xml.Linq;
 using System.IO;
 using System.Reflection;
 using System.Management;
-using System.Windows.Threading;
 
 namespace multirun
 {
@@ -285,6 +284,7 @@ namespace multirun
             cmbbx1.Items.Add("Below Normal: 6");
             cmbbx1.Items.Add("Idle: 4");
             cmbbx1.SelectedIndex = 3;
+            toolStripStatusLabel1.Text = "Ready.";
 
             appfolder = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location) + Path.DirectorySeparatorChar;
             configfile = appfolder + "multirun.xml";
@@ -499,17 +499,31 @@ namespace multirun
             this.ActiveControl = btnCloseAll;
             this.Hide();
 
+            int i = 0, j = 0;
             foreach (ListItem item in lbx1.Items)
+            {
+                i++;
                 if (item.Enabled)
+                {
+                    j++;
+                    SetStatusText($"Run [{i}/{lbx1.Items.Count}] {item.File}");
                     RunIt(item);
+                }
+            }
+            SetStatusText($"Running [{j}/{lbx1.Items.Count}]");
         }
 
         //==============================================================
         private void btnCloseAll_Click(object sender, EventArgs e)
         {
             panelCloseAll.BackColor = Color.Transparent;
-            this.Enabled = false;
-            Dispatcher.CurrentDispatcher.InvokeAsync(() => CloseAll(), DispatcherPriority.Background);
+            btnCloseAll.Enabled = false;
+            btnRunAll.Enabled = false;
+            CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
+            this.ActiveControl = listbox;
+            this.Refresh();
+
+            CloseAll();
         }
 
         private void CloseAll()
@@ -520,6 +534,8 @@ namespace multirun
                 ListItem item = (ListItem)lbx1.Items[i];
                 if (item.Enabled)
                 {
+                    SetStatusText($"Close [{i + 1}/{lbx1.Items.Count}] {item.File}");
+
                     Process p = GetActiveProcess(item);
                     if (p != null)
                     {
@@ -550,9 +566,16 @@ namespace multirun
             }
 
             // run on-close tasks
+            int j = 0;
             foreach (ListItem item in lbx2.Items)
+            {
+                j++;
                 if (item.Enabled)
+                {
+                    SetStatusText($"Post close [{j}/{lbx2.Items.Count}] {item.File}");
                     RunIt(item);
+                }
+            }
 
             if (newTrayRefreshMethod)
             {
@@ -1234,5 +1257,10 @@ namespace multirun
         }
 
         //==============================================================
-    }
+        private void SetStatusText(string txt)
+        {
+            toolStripStatusLabel1.Text = txt;
+            statusStrip1.Refresh();
+        }
+    } // Form1
 }
