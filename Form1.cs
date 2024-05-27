@@ -299,11 +299,14 @@ namespace multirun
         }
 
         //==============================================================
+        /// <summary>
+        /// Depending on (panelCloseAll.BackColor == Color.Transparent)
+        /// </summary>
         private void UpdateTitle()
         {
             var config = Path.GetFileNameWithoutExtension(profilefile);
             this.Text = $"Multirun - {config}";
-            notifyIcon1.Text = config;
+            notifyIcon1.Text = config + (panelCloseAll.BackColor == Color.Transparent ? "" : " - [Running All]");
         }
 
         //==============================================================
@@ -492,10 +495,9 @@ namespace multirun
         //==============================================================
         private void btnRunAll_Click(object sender, EventArgs e)
         {
-            var suffix = " - [Running All]";
-            if (!notifyIcon1.Text.EndsWith(suffix)) notifyIcon1.Text += suffix;
-            notifyIcon1.Visible = true;
             panelCloseAll.BackColor = Color.LightPink;
+            UpdateTitle();
+            notifyIcon1.Visible = true;
             this.ActiveControl = btnCloseAll;
             this.Hide();
 

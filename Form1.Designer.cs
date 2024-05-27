@@ -524,6 +524,7 @@
             // panelCloseAll
             // 
             this.panelCloseAll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.panelCloseAll.BackColor = System.Drawing.Color.Transparent;
             this.panelCloseAll.Controls.Add(this.btnCloseAll);
             this.panelCloseAll.Location = new System.Drawing.Point(442, 400);
             this.panelCloseAll.Name = "panelCloseAll";
