@@ -222,6 +222,7 @@ namespace multirun
             public bool AlwaysOnTop = false;
             public bool RestoreOnClose = false;
             public bool CloseTree = false;
+            public bool SingleInstance = false;
 
             public ListItem(string file)
             {
@@ -229,7 +230,7 @@ namespace multirun
             }
             public ListItem(string file, bool minimize, int timewait, bool enabled, int priority,
                 bool waitstart, int waitmore, string anexe, string ancmdline, bool alwaysontop,
-                bool restoreonclose, bool closetree)
+                bool restoreonclose, bool closetree, bool singleinstance)
             {
                 this.File = file;
                 this.Minimize = minimize;
@@ -243,6 +244,7 @@ namespace multirun
                 this.AlwaysOnTop = alwaysontop;
                 this.RestoreOnClose = restoreonclose;
                 this.CloseTree = closetree;
+                this.SingleInstance = singleinstance;
             }
 
             public override string ToString() { return File; }
@@ -350,7 +352,7 @@ namespace multirun
             foreach (XElement level1Element in XElement.Load(file).Elements(element))
             {
                 string anexe = string.Empty, ancmdline = string.Empty;
-                bool aot = false, restoreonclose = false, closetree = false;
+                bool aot = false, restoreonclose = false, closetree = false, singleinstance = false;
                 try
                 {
                     // attempt to read parameters added later
@@ -359,6 +361,7 @@ namespace multirun
                     aot = bool.Parse(level1Element.Attribute("alwaysontop").Value.ToString());
                     restoreonclose = bool.Parse(level1Element.Attribute("restoreonclose").Value.ToString());
                     closetree = bool.Parse(level1Element.Attribute("closetree").Value.ToString());
+                    singleinstance = bool.Parse(level1Element.Attribute("singleinstance").Value.ToString());
                 }
                 catch { }
                 listbox.Items.Add(new ListItem(
@@ -369,7 +372,7 @@ namespace multirun
                     int.Parse(level1Element.Attribute("priority").Value.ToString()),
                     bool.Parse(level1Element.Attribute("waitstart").Value.ToString()),
                     int.Parse(level1Element.Attribute("waitmore").Value.ToString()),
-                    anexe, ancmdline, aot, restoreonclose, closetree
+                    anexe, ancmdline, aot, restoreonclose, closetree, singleinstance
                     ), bool.Parse(level1Element.Attribute("enabled").Value.ToString()));
             }
         }
@@ -487,6 +490,10 @@ namespace multirun
 
             itemAttribute = doc.CreateAttribute("closetree");
             itemAttribute.Value = item.CloseTree.ToString();
+            itemNode.Attributes.Append(itemAttribute);
+
+            itemAttribute = doc.CreateAttribute("singleinstance");
+            itemAttribute.Value = item.SingleInstance.ToString();
             itemNode.Attributes.Append(itemAttribute);
 
             return itemNode;
@@ -640,6 +647,11 @@ namespace multirun
         }
 
         //==============================================================
+        /// <summary>
+        /// Check if process is already running and assign to item.Proc
+        /// </summary>
+        /// <returns>Process object or null</returns>
+        /// <exception cref="Exception"></exception>
         private Process GetActiveProcess(ListItem item, string prm_exe = "", string prm_cmdline = "")
         {
             Process ret = null;
@@ -695,6 +707,7 @@ namespace multirun
                         }
                     }
                 }
+                foreach (var p in processes) { if (p != ret) p.Dispose(); }
             }
             else // same started process
             {
@@ -704,95 +717,88 @@ namespace multirun
                     if (!item.Proc.HasExited)
                     {
                         ret = item.Proc;
+                        goto exit_GetActiveProcess; // return
                     }
                     else
                     {
-                        string exe = GetExecutable(item.ToString());
+                        item.Proc.Close();
+                        item.Proc.Dispose();
+                        item.Proc = null;
+                    }
+                }
 
-                        Process[] processes = Process.GetProcesses();
-                        foreach (Process proc in processes)
+                if (item.SingleInstance)
+                {
+                    GetExecutable(item.ToString(), out string exe, out string args);
+
+                    Process[] processes = Process.GetProcesses();
+                    foreach (Process proc in processes)
+                    {
+                        string file = null;
+                        try { file = proc.MainModule.FileName; }
+                        catch { }
+                        if (file != null && string.Equals(file, exe, StringComparison.OrdinalIgnoreCase))
                         {
-                            string file = null;
-                            try { file = proc.MainModule.FileName; }
-                            catch { }
-                            if (file != null && string.Equals(file, exe, StringComparison.OrdinalIgnoreCase))
+                            int rc = ProcessCommandLine.Retrieve(proc, out string parm);
+                            if (rc != 0) throw new Exception($"ProcessCommandLine.Retrieve() failed with: {rc}");
+                            if (parm == null) parm = "";
+                            if (string.Equals(parm, args))
                             {
-                                ret = proc;
-                                // cleanup previous process
-                                item.Proc.Close();
-                                item.Proc.Dispose();
                                 item.Proc = proc;
-
+                                ret = proc;
                                 break;
                             }
                         }
                     }
+                    foreach (var p in processes) { if (p != ret) p.Dispose(); }
                 }
             }
+        exit_GetActiveProcess:
             return ret;
         }
 
         //==============================================================
-        private string GetExecutable(string link)
+        private void GetExecutable(string file, out string exe, out string args)
         {
-            string file = link.ToString();
-            string path = "";
-
-            if (file.Substring(file.Length - 4).ToLower() == @".lnk")
+            exe = "";
+            args = "";
+            if (Path.GetExtension(file).ToLower() == ".lnk")
             {
-                if (File.Exists(file))
-                {
-                    string name, descr, workdir, args; // not used
-                    string err = GetShortcutInfo(file, out name, out path, out descr, out workdir, out args);
-                    if (err.Length > 0)
-                        MessageBox.Show(err);
-                }
+                if (!File.Exists(file))
+                    throw new Exception($"File doesn't exist: {file}");
+                string err = GetShortcutInfo(file, out _, out exe, out _, out _, out args);
+                if (!string.IsNullOrEmpty(err))
+                    throw new Exception(err);
             }
             else
             {
-                path = file;
+                exe = file;
             }
-            return path;
         }
 
         //==============================================================
         private void RunIt(ListItem item)
         {
             string file = item.ToString();
-            string name, descr; // not used
             string path, workdir, args;
 
             if (!File.Exists(file)) return;
 
-            if (file.Substring(file.Length - 4).ToLower() == @".lnk")
+            if (Path.GetExtension(file).ToLower() == ".lnk")
             {
-                string err = GetShortcutInfo(file, out name, out path, out descr, out workdir, out args);
-                if (err.Length > 0)
-                    MessageBox.Show(err);
+                string err = GetShortcutInfo(file, out _, out path, out _, out workdir, out args);
+                if (!string.IsNullOrEmpty(err))
+                    throw new Exception(err);
             }
             else
             {
                 path = file;
-                workdir = file.Substring(0, file.LastIndexOf("\\"));
+                workdir = Path.GetDirectoryName(file);
                 args = "";
             }
 
             if (!File.Exists(path)) return;
 
-            //check of already running
-            if (item.Proc != null)
-            {
-                item.Proc.Refresh();
-                if (!item.Proc.HasExited)
-                {
-                    return;
-                }
-                else
-                {
-                    item.Proc.Close();
-                    item.Proc.Dispose();
-                }
-            }
             if (string.IsNullOrEmpty(item.AnotherExe))
                 item.Proc = GetActiveProcess(item, path, args);
             else
@@ -846,6 +852,12 @@ namespace multirun
                     if (item.Minimize)
                         ShowWindow(proc.MainWindowHandle, SW_MINIMIZE);
                 }
+            }
+            else
+            {
+                proc.Close();
+                proc.Dispose();
+                item.Proc = null;
             }
         }
 
@@ -1035,6 +1047,10 @@ namespace multirun
                 chbxRestoreOnClose.Checked = ((ListItem)listbox.SelectedItem).RestoreOnClose;
                 chbxCloseTree.Enabled = true;
                 chbxCloseTree.Checked = ((ListItem)listbox.SelectedItem).CloseTree;
+                chbxSingleInstance.Enabled = true;
+                chbxSingleInstance.Checked = (listbox.SelectedItem as ListItem).SingleInstance;
+                textBoxSingleInstance.Enabled = true;
+                UiUpdateSingleInstanceText((ListItem)listbox.SelectedItem);
 
                 button3.Enabled = true;
             }
@@ -1062,9 +1078,88 @@ namespace multirun
                 chbxRestoreOnClose.Enabled = false;
                 chbxCloseTree.Checked = false;
                 chbxCloseTree.Enabled = false;
+                chbxSingleInstance.Checked = false;
+                chbxSingleInstance.Enabled = false;
+                textBoxSingleInstance.Text = string.Empty;
+                textBoxSingleInstance.BackColor = SystemColors.Control;
+                textBoxSingleInstance.Enabled = false;
+                toolTip1.SetToolTip(textBoxSingleInstance, string.Empty);
 
                 button3.Enabled = false;
             }
+        }
+
+        //==============================================================
+        /// <summary>
+        /// Returns error or empty string.
+        /// </summary>
+        private string GetItemSingleInstanceParams(ListItem item, out string path, out string args, out bool isanother)
+        {
+            path = "";
+            args = "";
+            isanother = false;
+            string err = "";
+            string file = item.ToString();
+
+            if (!File.Exists(file))
+            {
+                err = $"Error: file doesn't exist: {file}";
+                goto exit_GetItemSingleInstanceParams;
+            }
+
+            if (Path.GetExtension(file).ToLower() == ".lnk")
+            {
+                err = GetShortcutInfo(file, out _, out path, out _, out _, out args);
+                if (!string.IsNullOrEmpty(err))
+                {
+                    err = $"Error: {err}";
+                    goto exit_GetItemSingleInstanceParams;
+                }
+            }
+            else
+            {
+                path = file;
+                args = "";
+            }
+
+            if (!File.Exists(path))
+            {
+                err = $"Error: file doesn't exist: {path}";
+                goto exit_GetItemSingleInstanceParams;
+            }
+
+            if (!string.IsNullOrEmpty(item.AnotherExe))
+            {
+                isanother = true;
+                path = item.AnotherExe;
+                args = item.AnotherCmdline;
+            }
+
+        exit_GetItemSingleInstanceParams:
+            return err;
+        }
+
+        //==============================================================
+        /// <summary>
+        /// Returns combined command line of error string "Error: (description)"
+        /// </summary>
+        private string GetItemSingleInstanceString(ListItem item, out bool iserror)
+        {
+            string err = GetItemSingleInstanceParams(item, out string path, out string args, out _);
+            iserror = !string.IsNullOrEmpty(err);
+            return iserror ? err : $"{path} {args}";
+        }
+
+        //==============================================================
+        /// <summary>
+        /// Changes TextBox's BackColor to indicate error.
+        /// </summary>
+        private void UiUpdateSingleInstanceText(ListItem item)
+        {
+            string text = GetItemSingleInstanceString(item, out bool iserror);
+            textBoxSingleInstance.Text = text;
+            textBoxSingleInstance.BackColor = iserror ? Color.LightPink : SystemColors.Control;
+            toolTip1.SetToolTip(textBoxSingleInstance, text);
         }
 
         //==============================================================
@@ -1119,14 +1214,24 @@ namespace multirun
         {
             CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
             if (listbox.SelectedItem != null)
-                ((ListItem)listbox.SelectedItem).AnotherExe = textBoxExec.Text;
+            {
+                ListItem item = (ListItem)listbox.SelectedItem;
+                item.AnotherExe = textBoxExec.Text;
+                // update single instance string
+                UiUpdateSingleInstanceText(item);
+            }
         }
         //--------------------------------------------------------------
         private void textBoxCmdline_TextChanged(object sender, EventArgs e)
         {
             CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
             if (listbox.SelectedItem != null)
-                ((ListItem)listbox.SelectedItem).AnotherCmdline = textBoxCmdline.Text;
+            {
+                ListItem item = (ListItem)listbox.SelectedItem;
+                item.AnotherCmdline = textBoxCmdline.Text;
+                // update single instance string
+                UiUpdateSingleInstanceText(item);
+            }
         }
         //==============================================================
         private void tabctrl1_SelectedIndexChanged(object sender, EventArgs e)
@@ -1150,6 +1255,12 @@ namespace multirun
         {
             CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
             ((ListItem)listbox.SelectedItem).CloseTree = chbxCloseTree.Checked;
+        }
+        //==============================================================
+        private void chbxSingleInstance_Click(object sender, EventArgs e)
+        {
+            CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
+            ((ListItem)listbox.SelectedItem).SingleInstance = chbxSingleInstance.Checked;
         }
 
         //==============================================================
@@ -1185,9 +1296,10 @@ namespace multirun
         //==============================================================
         private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            System.Reflection.Assembly assembly = System.Reflection.Assembly.GetExecutingAssembly();
+            Assembly assembly = Assembly.GetExecutingAssembly();
             FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
-            MessageBox.Show("Multirun v" + fvi.FileVersion + "\n\nRight Click minimize button - minimize to tray", "About");
+            MessageBox.Show("Multirun v" + fvi.FileVersion + "\n\nRight Click minimize button - minimize to tray."
+                + "\nEsc - focus list box.", "About");
         }
 
         //==============================================================
@@ -1263,6 +1375,16 @@ namespace multirun
         {
             toolStripStatusLabel1.Text = txt;
             statusStrip1.Refresh();
+        }
+
+        //==============================================================
+        private void Form1_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Escape)
+            {
+                CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
+                this.ActiveControl = listbox;
+            }
         }
     } // Form1
 }

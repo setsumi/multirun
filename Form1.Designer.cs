@@ -33,6 +33,8 @@
             this.btnRunAll = new System.Windows.Forms.Button();
             this.chbx1 = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.textBoxSingleInstance = new System.Windows.Forms.TextBox();
+            this.chbxSingleInstance = new System.Windows.Forms.CheckBox();
             this.chbxCloseTree = new System.Windows.Forms.CheckBox();
             this.chbxRestoreOnClose = new System.Windows.Forms.CheckBox();
             this.chbx2 = new System.Windows.Forms.CheckBox();
@@ -116,6 +118,8 @@
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.textBoxSingleInstance);
+            this.groupBox1.Controls.Add(this.chbxSingleInstance);
             this.groupBox1.Controls.Add(this.chbxCloseTree);
             this.groupBox1.Controls.Add(this.chbxRestoreOnClose);
             this.groupBox1.Controls.Add(this.chbx2);
@@ -139,6 +143,30 @@
             this.groupBox1.Text = "Drag&&drop shortcuts/exe here, Drag = rearrange, Del = remove, Ctrl+Enter = run s" +
     "elected";
             // 
+            // textBoxSingleInstance
+            // 
+            this.textBoxSingleInstance.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.textBoxSingleInstance.Enabled = false;
+            this.textBoxSingleInstance.Location = new System.Drawing.Point(9, 342);
+            this.textBoxSingleInstance.Name = "textBoxSingleInstance";
+            this.textBoxSingleInstance.ReadOnly = true;
+            this.textBoxSingleInstance.Size = new System.Drawing.Size(308, 20);
+            this.textBoxSingleInstance.TabIndex = 13;
+            // 
+            // chbxSingleInstance
+            // 
+            this.chbxSingleInstance.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.chbxSingleInstance.AutoSize = true;
+            this.chbxSingleInstance.Enabled = false;
+            this.chbxSingleInstance.Location = new System.Drawing.Point(9, 319);
+            this.chbxSingleInstance.Name = "chbxSingleInstance";
+            this.chbxSingleInstance.Size = new System.Drawing.Size(98, 17);
+            this.chbxSingleInstance.TabIndex = 12;
+            this.chbxSingleInstance.Text = "Single instance";
+            this.toolTip1.SetToolTip(this.chbxSingleInstance, "Don\'t run if already running");
+            this.chbxSingleInstance.UseVisualStyleBackColor = true;
+            this.chbxSingleInstance.Click += new System.EventHandler(this.chbxSingleInstance_Click);
+            // 
             // chbxCloseTree
             // 
             this.chbxCloseTree.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
@@ -147,7 +175,7 @@
             this.chbxCloseTree.Location = new System.Drawing.Point(335, 345);
             this.chbxCloseTree.Name = "chbxCloseTree";
             this.chbxCloseTree.Size = new System.Drawing.Size(113, 17);
-            this.chbxCloseTree.TabIndex = 15;
+            this.chbxCloseTree.TabIndex = 16;
             this.chbxCloseTree.Text = "Close process tree";
             this.toolTip1.SetToolTip(this.chbxCloseTree, "Close also the process descendants tree");
             this.chbxCloseTree.UseVisualStyleBackColor = true;
@@ -161,7 +189,7 @@
             this.chbxRestoreOnClose.Location = new System.Drawing.Point(335, 322);
             this.chbxRestoreOnClose.Name = "chbxRestoreOnClose";
             this.chbxRestoreOnClose.Size = new System.Drawing.Size(106, 17);
-            this.chbxRestoreOnClose.TabIndex = 14;
+            this.chbxRestoreOnClose.TabIndex = 15;
             this.chbxRestoreOnClose.Text = "Restore on close";
             this.toolTip1.SetToolTip(this.chbxRestoreOnClose, "If minimized restore window before closing");
             this.chbxRestoreOnClose.UseVisualStyleBackColor = true;
@@ -175,7 +203,7 @@
             this.chbx2.Location = new System.Drawing.Point(233, 296);
             this.chbx2.Name = "chbx2";
             this.chbx2.Size = new System.Drawing.Size(96, 17);
-            this.chbx2.TabIndex = 13;
+            this.chbx2.TabIndex = 11;
             this.chbx2.Text = "Always on Top";
             this.toolTip1.SetToolTip(this.chbx2, "Make window always on top.\r\nRecommended increasing \"Wait some more\" time.");
             this.chbx2.UseVisualStyleBackColor = true;
@@ -192,7 +220,7 @@
             this.groupBox2.Location = new System.Drawing.Point(335, 221);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(168, 95);
-            this.groupBox2.TabIndex = 12;
+            this.groupBox2.TabIndex = 14;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Close another process";
             // 
@@ -216,7 +244,7 @@
             this.textBoxExec.Location = new System.Drawing.Point(9, 32);
             this.textBoxExec.Name = "textBoxExec";
             this.textBoxExec.Size = new System.Drawing.Size(154, 20);
-            this.textBoxExec.TabIndex = 2;
+            this.textBoxExec.TabIndex = 1;
             this.toolTip1.SetToolTip(this.textBoxExec, "Full or partial executable path");
             this.textBoxExec.TextChanged += new System.EventHandler(this.textBoxExec_TextChanged);
             // 
@@ -226,7 +254,7 @@
             this.label7.Location = new System.Drawing.Point(6, 55);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(128, 13);
-            this.label7.TabIndex = 1;
+            this.label7.TabIndex = 2;
             this.label7.Text = "Command line parameters";
             // 
             // label6
@@ -529,7 +557,7 @@
             this.panelCloseAll.Location = new System.Drawing.Point(442, 400);
             this.panelCloseAll.Name = "panelCloseAll";
             this.panelCloseAll.Size = new System.Drawing.Size(93, 36);
-            this.panelCloseAll.TabIndex = 5;
+            this.panelCloseAll.TabIndex = 4;
             // 
             // btnCloseAll
             // 
@@ -537,7 +565,7 @@
             this.btnCloseAll.Location = new System.Drawing.Point(9, 7);
             this.btnCloseAll.Name = "btnCloseAll";
             this.btnCloseAll.Size = new System.Drawing.Size(75, 23);
-            this.btnCloseAll.TabIndex = 5;
+            this.btnCloseAll.TabIndex = 0;
             this.btnCloseAll.Text = "Close All";
             this.btnCloseAll.UseVisualStyleBackColor = true;
             this.btnCloseAll.Click += new System.EventHandler(this.btnCloseAll_Click);
@@ -551,7 +579,7 @@
             this.statusStrip1.Location = new System.Drawing.Point(0, 438);
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(535, 20);
-            this.statusStrip1.TabIndex = 6;
+            this.statusStrip1.TabIndex = 5;
             this.statusStrip1.Text = "statusStrip1";
             // 
             // toolStripStatusLabel1
@@ -573,11 +601,13 @@
             this.Controls.Add(this.btnRunAll);
             this.Controls.Add(this.menu1);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
+            this.KeyPreview = true;
             this.MainMenuStrip = this.menu1;
             this.Name = "Form1";
             this.Text = "Multirun";
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.Form1_FormClosing);
             this.Load += new System.EventHandler(this.Form1_Load);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Form1_KeyDown);
             this.groupBox1.ResumeLayout(false);
             this.groupBox1.PerformLayout();
             this.groupBox2.ResumeLayout(false);
@@ -642,6 +672,8 @@
         private System.Windows.Forms.CheckBox chbxRestoreOnClose;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
+        private System.Windows.Forms.CheckBox chbxSingleInstance;
+        private System.Windows.Forms.TextBox textBoxSingleInstance;
     }
 }
 
