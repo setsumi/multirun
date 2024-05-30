@@ -862,8 +862,10 @@ namespace multirun
         }
 
         //==============================================================
-        // Get information about this link.
-        // Return an error message if there's a problem.
+        /// <summary>
+        /// Get information about this link.
+        /// </summary>
+        /// <returns>Return an error message if there's a problem.</returns>
         private string GetShortcutInfo(string full_name,
                 out string name, out string path, out string descr,
                 out string working_dir, out string args)
