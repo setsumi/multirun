@@ -157,6 +157,8 @@
             // 
             this.chbxSingleInstance.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.chbxSingleInstance.AutoSize = true;
+            this.chbxSingleInstance.Checked = true;
+            this.chbxSingleInstance.CheckState = System.Windows.Forms.CheckState.Checked;
             this.chbxSingleInstance.Enabled = false;
             this.chbxSingleInstance.Location = new System.Drawing.Point(9, 319);
             this.chbxSingleInstance.Name = "chbxSingleInstance";
