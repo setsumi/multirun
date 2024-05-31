@@ -222,7 +222,7 @@ namespace multirun
             public bool AlwaysOnTop = false;
             public bool RestoreOnClose = false;
             public bool CloseTree = false;
-            public bool SingleInstance = false;
+            public bool SingleInstance = true;
 
             public ListItem(string file)
             {
@@ -352,7 +352,7 @@ namespace multirun
             foreach (XElement level1Element in XElement.Load(file).Elements(element))
             {
                 string anexe = string.Empty, ancmdline = string.Empty;
-                bool aot = false, restoreonclose = false, closetree = false, singleinstance = false;
+                bool aot = false, restoreonclose = false, closetree = false, singleinstance = true;
                 try
                 {
                     // attempt to read parameters added later
@@ -1080,7 +1080,7 @@ namespace multirun
                 chbxRestoreOnClose.Enabled = false;
                 chbxCloseTree.Checked = false;
                 chbxCloseTree.Enabled = false;
-                chbxSingleInstance.Checked = false;
+                chbxSingleInstance.Checked = true;
                 chbxSingleInstance.Enabled = false;
                 textBoxSingleInstance.Text = string.Empty;
                 textBoxSingleInstance.BackColor = SystemColors.Control;
