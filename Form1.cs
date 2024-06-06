@@ -741,6 +741,9 @@ namespace multirun
                         {
                             int rc = ProcessCommandLine.Retrieve(proc, out string parm);
                             if (rc != 0) throw new Exception($"ProcessCommandLine.Retrieve() failed with: {rc}");
+                            var cmdLineArray = ProcessCommandLine.CommandLineToArgs(parm);
+                            // account for quotes around the first argument and then space
+                            parm = cmdLineArray.Count > 1 ? parm.Substring(cmdLineArray[0].Length + 3) : "";
                             if (parm == null) parm = "";
                             if (string.Equals(parm, args))
                             {
