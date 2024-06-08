@@ -277,6 +277,7 @@
             this.label5.Size = new System.Drawing.Size(105, 13);
             this.label5.TabIndex = 9;
             this.label5.Text = "Wait some more (ms)";
+            this.toolTip1.SetToolTip(this.label5, "Recommended for \"Minimize\" and \"Always on Top\" options");
             // 
             // nud2
             // 
@@ -286,6 +287,7 @@
             this.nud2.Name = "nud2";
             this.nud2.Size = new System.Drawing.Size(75, 20);
             this.nud2.TabIndex = 10;
+            this.toolTip1.SetToolTip(this.nud2, "Recommended for \"Minimize\" and \"Always on Top\" options");
             this.nud2.ValueChanged += new System.EventHandler(this.nud2_ValueChanged);
             // 
             // label3

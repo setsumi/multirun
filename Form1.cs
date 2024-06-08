@@ -744,7 +744,6 @@ namespace multirun
                             var cmdLineArray = ProcessCommandLine.CommandLineToArgs(parm);
                             // account for quotes around the first argument and then space
                             parm = cmdLineArray.Count > 1 ? parm.Substring(cmdLineArray[0].Length + 3) : "";
-                            if (parm == null) parm = "";
                             if (string.Equals(parm, args))
                             {
                                 item.Proc = proc;
