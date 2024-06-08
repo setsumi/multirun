@@ -98,6 +98,7 @@
             this.btnRunAll.UseVisualStyleBackColor = true;
             this.btnRunAll.Click += new System.EventHandler(this.btnRunAll_Click);
             this.btnRunAll.Enter += new System.EventHandler(this.btnRunAll_Enter);
+            this.btnRunAll.Leave += new System.EventHandler(this.btnRunAll_Leave);
             // 
             // chbx1
             // 
@@ -545,6 +546,7 @@
             this.toolTip1.SetToolTip(this.button3, "(Ctrl+Enter)");
             this.button3.UseVisualStyleBackColor = true;
             this.button3.Click += new System.EventHandler(this.button3_Click);
+            this.button3.Leave += new System.EventHandler(this.btnRunAll_Leave);
             // 
             // notifyIcon1
             // 
@@ -574,6 +576,7 @@
             this.btnCloseAll.UseVisualStyleBackColor = true;
             this.btnCloseAll.Click += new System.EventHandler(this.btnCloseAll_Click);
             this.btnCloseAll.Enter += new System.EventHandler(this.btnRunAll_Enter);
+            this.btnCloseAll.Leave += new System.EventHandler(this.btnRunAll_Leave);
             // 
             // statusStrip1
             // 

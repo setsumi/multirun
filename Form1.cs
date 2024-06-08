@@ -1387,8 +1387,21 @@ namespace multirun
             if (e.KeyCode == Keys.Escape)
             {
                 CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
-                this.ActiveControl = listbox;
+                if (ActiveControl != listbox)
+                {
+                    ActiveControl = listbox;
+                }
+                else
+                {
+                    ActiveControl = btnCloseAll.Tag as string == "focus me" ? btnCloseAll : btnRunAll;
+                }
             }
+        }
+
+        //==============================================================
+        private void btnRunAll_Leave(object sender, EventArgs e)
+        {
+            btnCloseAll.Tag = sender == btnCloseAll ? "focus me" : "";
         }
     } // Form1
 }
