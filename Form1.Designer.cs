@@ -371,6 +371,7 @@
             this.lbx1.DragEnter += new System.Windows.Forms.DragEventHandler(this.lbx1_DragEnter);
             this.lbx1.DragOver += new System.Windows.Forms.DragEventHandler(this.lbx1_DragOver);
             this.lbx1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.lbx1_KeyDown);
+            this.lbx1.Leave += new System.EventHandler(this.lbx1_Leave);
             this.lbx1.MouseDown += new System.Windows.Forms.MouseEventHandler(this.lbx1_MouseDown);
             this.lbx1.MouseMove += new System.Windows.Forms.MouseEventHandler(this.lbx1_MouseMove);
             this.lbx1.MouseUp += new System.Windows.Forms.MouseEventHandler(this.lbx1_MouseUp);
@@ -402,6 +403,7 @@
             this.lbx2.DragEnter += new System.Windows.Forms.DragEventHandler(this.lbx1_DragEnter);
             this.lbx2.DragOver += new System.Windows.Forms.DragEventHandler(this.lbx1_DragOver);
             this.lbx2.KeyDown += new System.Windows.Forms.KeyEventHandler(this.lbx1_KeyDown);
+            this.lbx2.Leave += new System.EventHandler(this.lbx1_Leave);
             this.lbx2.MouseDown += new System.Windows.Forms.MouseEventHandler(this.lbx1_MouseDown);
             this.lbx2.MouseMove += new System.Windows.Forms.MouseEventHandler(this.lbx1_MouseMove);
             this.lbx2.MouseUp += new System.Windows.Forms.MouseEventHandler(this.lbx1_MouseUp);

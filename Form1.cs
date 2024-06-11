@@ -275,6 +275,8 @@ namespace multirun
             lbx2.AllowDrop = true;
             lbx1.CheckOnClick = false;
             lbx2.CheckOnClick = false;
+            lbx1.Tag = -1; // last selected item
+            lbx2.Tag = -1;
             nud1.Maximum = decimal.MaxValue;
             nud1.Minimum = -1;
             nud2.Maximum = decimal.MaxValue;
@@ -1097,10 +1099,13 @@ namespace multirun
         /// <summary>
         /// Returns error or empty string.
         /// </summary>
-        private string GetItemSingleInstanceParams(ListItem item, out string path, out string args, out bool isanother)
+        private string GetItemSingleInstanceParams(ListItem item, out string path, out string args,
+            out string path0, out string args0, out bool isanother)
         {
             path = "";
             args = "";
+            path0 = "";
+            args0 = "";
             isanother = false;
             string err = "";
             string file = item.ToString();
@@ -1125,6 +1130,8 @@ namespace multirun
                 path = file;
                 args = "";
             }
+            path0 = path;
+            args0 = args;
 
             if (!File.Exists(path))
             {
@@ -1144,14 +1151,13 @@ namespace multirun
         }
 
         //==============================================================
-        /// <summary>
-        /// Returns combined command line of error string "Error: (description)"
-        /// </summary>
+        /// <returns>Combined command line or error string "Error: (description)"</returns>
         private string GetItemSingleInstanceString(ListItem item, out bool iserror)
         {
-            string err = GetItemSingleInstanceParams(item, out string path, out string args, out _);
+            string err = GetItemSingleInstanceParams(item, out string path, out string args,
+                out string path0, out string args0, out _);
             iserror = !string.IsNullOrEmpty(err);
-            return iserror ? err : $"{path} {args}";
+            return iserror ? $"{err}\n" : $"{path} {args}\n{path0} {args0}";
         }
 
         //==============================================================
@@ -1161,9 +1167,10 @@ namespace multirun
         private void UiUpdateSingleInstanceText(ListItem item)
         {
             string text = GetItemSingleInstanceString(item, out bool iserror);
-            textBoxSingleInstance.Text = text;
+            string[] textSplit = text.Split('\n');
+            textBoxSingleInstance.Text = textSplit[0];
             textBoxSingleInstance.BackColor = iserror ? Color.LightPink : SystemColors.Control;
-            toolTip1.SetToolTip(textBoxSingleInstance, text);
+            toolTip1.SetToolTip(textBoxSingleInstance, textSplit[0] == textSplit[1] ? textSplit[0] : text);
         }
 
         //==============================================================
@@ -1303,7 +1310,7 @@ namespace multirun
             Assembly assembly = Assembly.GetExecutingAssembly();
             FileVersionInfo fvi = FileVersionInfo.GetVersionInfo(assembly.Location);
             MessageBox.Show("Multirun v" + fvi.FileVersion + "\n\nRight Click minimize button - minimize to tray."
-                + "\nEsc - focus list box.", "About");
+                + "\nEsc - focus list box or bottom button.", "About");
         }
 
         //==============================================================
@@ -1387,13 +1394,13 @@ namespace multirun
             if (e.KeyCode == Keys.Escape)
             {
                 CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
-                if (ActiveControl != listbox)
+                if (this.ActiveControl != listbox)
                 {
-                    ActiveControl = listbox;
+                    ActivateListbox(listbox);
                 }
                 else
                 {
-                    ActiveControl = btnCloseAll.Tag as string == "focus me" ? btnCloseAll : btnRunAll;
+                    this.ActiveControl = btnCloseAll.Tag as string == "focus me" ? btnCloseAll : btnRunAll;
                 }
             }
         }
@@ -1402,6 +1409,21 @@ namespace multirun
         private void btnRunAll_Leave(object sender, EventArgs e)
         {
             btnCloseAll.Tag = sender == btnCloseAll ? "focus me" : "";
+        }
+
+        //==============================================================
+        private void ActivateListbox(ListBox listbox)
+        {
+            int index = (int)listbox.Tag;
+            this.ActiveControl = listbox;
+            listbox.SelectedIndex = (index == -1 && listbox.Items.Count > 0) ? 0 : index;
+        }
+
+        //==============================================================
+        private void lbx1_Leave(object sender, EventArgs e)
+        {
+            CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
+            listbox.Tag = listbox.SelectedIndex;
         }
     } // Form1
 }
