@@ -75,6 +75,7 @@
             this.btnCloseAll = new System.Windows.Forms.Button();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.toolStripStatusLabel1 = new System.Windows.Forms.ToolStripStatusLabel();
+            this.tmrStatusMsg = new System.Windows.Forms.Timer(this.components);
             this.groupBox1.SuspendLayout();
             this.groupBox2.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.nud2)).BeginInit();
@@ -598,6 +599,11 @@
             this.toolStripStatusLabel1.Size = new System.Drawing.Size(118, 15);
             this.toolStripStatusLabel1.Text = "toolStripStatusLabel1";
             // 
+            // tmrStatusMsg
+            // 
+            this.tmrStatusMsg.Interval = 300;
+            this.tmrStatusMsg.Tick += new System.EventHandler(this.tmrStatusMsg_Tick);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -683,6 +689,7 @@
         private System.Windows.Forms.ToolStripStatusLabel toolStripStatusLabel1;
         private System.Windows.Forms.CheckBox chbxSingleInstance;
         private System.Windows.Forms.TextBox textBoxSingleInstance;
+        private System.Windows.Forms.Timer tmrStatusMsg;
     }
 }
 

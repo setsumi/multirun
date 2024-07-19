@@ -1287,6 +1287,7 @@ namespace multirun
         private void saveToolStripMenuItem_Click(object sender, EventArgs e)
         {
             ProfileSave(profilefile);
+            FlashStatusMessage("Profile saved.");
         }
 
         //==============================================================
@@ -1295,6 +1296,7 @@ namespace multirun
             if (saveFileDialog1.ShowDialog() == DialogResult.OK)
             {
                 ProfileSave(saveFileDialog1.FileName);
+                FlashStatusMessage("Profile saved.");
             }
         }
 
@@ -1384,6 +1386,8 @@ namespace multirun
         //==============================================================
         private void SetStatusText(string txt)
         {
+            if (toolStripStatusLabel1.ForeColor != SystemColors.ControlText)
+                toolStripStatusLabel1.ForeColor = SystemColors.ControlText;
             toolStripStatusLabel1.Text = txt;
             statusStrip1.Refresh();
         }
@@ -1424,6 +1428,27 @@ namespace multirun
         {
             CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
             listbox.Tag = listbox.SelectedIndex;
+        }
+
+        //==============================================================
+        private void FlashStatusMessage(string msg)
+        {
+            toolStripStatusLabel1.Text = msg;
+            tmrStatusMsg.Tag = 0;
+            tmrStatusMsg.Start();
+        }
+
+        //==============================================================
+        private void tmrStatusMsg_Tick(object sender, EventArgs e)
+        {
+            int counter = (int)tmrStatusMsg.Tag + 1;
+            tmrStatusMsg.Tag = counter;
+            if (counter > 6)
+            {
+                tmrStatusMsg.Stop();
+                return;
+            }
+            toolStripStatusLabel1.ForeColor = counter % 2 == 0 ? SystemColors.ControlText : SystemColors.Control;
         }
     } // Form1
 }
