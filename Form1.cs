@@ -255,6 +255,7 @@ namespace multirun
         private string configfile;
         private string profilefile;
         private bool newTrayRefreshMethod = true;
+        private string statusTextBackup = "";
 
         private bool mouse_drag = false;
         private bool mouse_down = false;
@@ -1433,6 +1434,7 @@ namespace multirun
         //==============================================================
         private void FlashStatusMessage(string msg)
         {
+            statusTextBackup = toolStripStatusLabel1.Text;
             toolStripStatusLabel1.Text = msg;
             tmrStatusMsg.Tag = 0;
             tmrStatusMsg.Start();
@@ -1446,6 +1448,8 @@ namespace multirun
             if (counter > 6)
             {
                 tmrStatusMsg.Stop();
+                toolStripStatusLabel1.Text = statusTextBackup;
+                toolStripStatusLabel1.ForeColor = SystemColors.ControlText;
                 return;
             }
             toolStripStatusLabel1.ForeColor = counter % 2 == 0 ? SystemColors.ControlText : SystemColors.Control;
