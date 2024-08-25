@@ -33,6 +33,7 @@
             this.btnRunAll = new System.Windows.Forms.Button();
             this.chbx1 = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.chbxSkipClose = new System.Windows.Forms.CheckBox();
             this.textBoxSingleInstance = new System.Windows.Forms.TextBox();
             this.chbxSingleInstance = new System.Windows.Forms.CheckBox();
             this.chbxCloseTree = new System.Windows.Forms.CheckBox();
@@ -120,6 +121,7 @@
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.chbxSkipClose);
             this.groupBox1.Controls.Add(this.textBoxSingleInstance);
             this.groupBox1.Controls.Add(this.chbxSingleInstance);
             this.groupBox1.Controls.Add(this.chbxCloseTree);
@@ -139,11 +141,25 @@
             this.groupBox1.Controls.Add(this.chbx1);
             this.groupBox1.Location = new System.Drawing.Point(12, 27);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(511, 370);
+            this.groupBox1.Size = new System.Drawing.Size(541, 370);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Drag&&drop shortcuts/exe here, Drag = rearrange, Del = remove, Ctrl+Enter = run s" +
     "elected";
+            // 
+            // chbxSkipClose
+            // 
+            this.chbxSkipClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.chbxSkipClose.AutoSize = true;
+            this.chbxSkipClose.Enabled = false;
+            this.chbxSkipClose.Location = new System.Drawing.Point(460, 322);
+            this.chbxSkipClose.Name = "chbxSkipClose";
+            this.chbxSkipClose.Size = new System.Drawing.Size(75, 17);
+            this.chbxSkipClose.TabIndex = 17;
+            this.chbxSkipClose.Text = "Skip close";
+            this.toolTip1.SetToolTip(this.chbxSkipClose, "Do not close this process");
+            this.chbxSkipClose.UseVisualStyleBackColor = true;
+            this.chbxSkipClose.Click += new System.EventHandler(this.chbxSkip_Click);
             // 
             // textBoxSingleInstance
             // 
@@ -223,7 +239,7 @@
             this.groupBox2.Controls.Add(this.label6);
             this.groupBox2.Location = new System.Drawing.Point(335, 221);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(168, 95);
+            this.groupBox2.Size = new System.Drawing.Size(198, 95);
             this.groupBox2.TabIndex = 14;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Close another process";
@@ -235,7 +251,7 @@
             this.textBoxCmdline.Enabled = false;
             this.textBoxCmdline.Location = new System.Drawing.Point(9, 69);
             this.textBoxCmdline.Name = "textBoxCmdline";
-            this.textBoxCmdline.Size = new System.Drawing.Size(154, 20);
+            this.textBoxCmdline.Size = new System.Drawing.Size(184, 20);
             this.textBoxCmdline.TabIndex = 3;
             this.toolTip1.SetToolTip(this.textBoxCmdline, "Full or partial parameters");
             this.textBoxCmdline.TextChanged += new System.EventHandler(this.textBoxCmdline_TextChanged);
@@ -247,7 +263,7 @@
             this.textBoxExec.Enabled = false;
             this.textBoxExec.Location = new System.Drawing.Point(9, 32);
             this.textBoxExec.Name = "textBoxExec";
-            this.textBoxExec.Size = new System.Drawing.Size(154, 20);
+            this.textBoxExec.Size = new System.Drawing.Size(184, 20);
             this.textBoxExec.TabIndex = 1;
             this.toolTip1.SetToolTip(this.textBoxExec, "Full or partial executable path");
             this.textBoxExec.TextChanged += new System.EventHandler(this.textBoxExec_TextChanged);
@@ -341,7 +357,7 @@
             this.tabctrl1.Location = new System.Drawing.Point(6, 19);
             this.tabctrl1.Name = "tabctrl1";
             this.tabctrl1.SelectedIndex = 0;
-            this.tabctrl1.Size = new System.Drawing.Size(499, 200);
+            this.tabctrl1.Size = new System.Drawing.Size(529, 200);
             this.tabctrl1.TabIndex = 0;
             this.tabctrl1.SelectedIndexChanged += new System.EventHandler(this.tabctrl1_SelectedIndexChanged);
             // 
@@ -351,7 +367,7 @@
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(491, 174);
+            this.tabPage1.Size = new System.Drawing.Size(521, 174);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Items to Run";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -364,7 +380,7 @@
             this.lbx1.FormattingEnabled = true;
             this.lbx1.Location = new System.Drawing.Point(3, 3);
             this.lbx1.Name = "lbx1";
-            this.lbx1.Size = new System.Drawing.Size(485, 169);
+            this.lbx1.Size = new System.Drawing.Size(515, 169);
             this.lbx1.TabIndex = 0;
             this.lbx1.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.lbx1_ItemCheck);
             this.lbx1.SelectedIndexChanged += new System.EventHandler(this.lbx1_SelectedIndexChanged);
@@ -383,7 +399,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(491, 174);
+            this.tabPage2.Size = new System.Drawing.Size(506, 174);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Run on Close";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -459,7 +475,7 @@
             this.menu1.Location = new System.Drawing.Point(0, 0);
             this.menu1.Name = "menu1";
             this.menu1.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.menu1.Size = new System.Drawing.Size(535, 24);
+            this.menu1.Size = new System.Drawing.Size(565, 24);
             this.menu1.TabIndex = 0;
             this.menu1.Text = "menuStrip1";
             // 
@@ -563,7 +579,7 @@
             this.panelCloseAll.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
             this.panelCloseAll.BackColor = System.Drawing.Color.Transparent;
             this.panelCloseAll.Controls.Add(this.btnCloseAll);
-            this.panelCloseAll.Location = new System.Drawing.Point(442, 400);
+            this.panelCloseAll.Location = new System.Drawing.Point(472, 400);
             this.panelCloseAll.Name = "panelCloseAll";
             this.panelCloseAll.Size = new System.Drawing.Size(93, 36);
             this.panelCloseAll.TabIndex = 4;
@@ -588,7 +604,7 @@
             this.statusStrip1.LayoutStyle = System.Windows.Forms.ToolStripLayoutStyle.Flow;
             this.statusStrip1.Location = new System.Drawing.Point(0, 438);
             this.statusStrip1.Name = "statusStrip1";
-            this.statusStrip1.Size = new System.Drawing.Size(535, 20);
+            this.statusStrip1.Size = new System.Drawing.Size(565, 20);
             this.statusStrip1.TabIndex = 5;
             this.statusStrip1.Text = "statusStrip1";
             // 
@@ -608,7 +624,7 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(535, 458);
+            this.ClientSize = new System.Drawing.Size(565, 458);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.panelCloseAll);
             this.Controls.Add(this.button3);
@@ -690,6 +706,7 @@
         private System.Windows.Forms.CheckBox chbxSingleInstance;
         private System.Windows.Forms.TextBox textBoxSingleInstance;
         private System.Windows.Forms.Timer tmrStatusMsg;
+        private System.Windows.Forms.CheckBox chbxSkipClose;
     }
 }
 

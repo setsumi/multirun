@@ -223,6 +223,7 @@ namespace multirun
             public bool RestoreOnClose = false;
             public bool CloseTree = false;
             public bool SingleInstance = true;
+            public bool SkipClose = false;
 
             public ListItem(string file)
             {
@@ -230,7 +231,7 @@ namespace multirun
             }
             public ListItem(string file, bool minimize, int timewait, bool enabled, int priority,
                 bool waitstart, int waitmore, string anexe, string ancmdline, bool alwaysontop,
-                bool restoreonclose, bool closetree, bool singleinstance)
+                bool restoreonclose, bool closetree, bool singleinstance, bool skipclose)
             {
                 this.File = file;
                 this.Minimize = minimize;
@@ -245,6 +246,7 @@ namespace multirun
                 this.RestoreOnClose = restoreonclose;
                 this.CloseTree = closetree;
                 this.SingleInstance = singleinstance;
+                this.SkipClose = skipclose;
             }
 
             public override string ToString() { return File; }
@@ -355,7 +357,7 @@ namespace multirun
             foreach (XElement level1Element in XElement.Load(file).Elements(element))
             {
                 string anexe = string.Empty, ancmdline = string.Empty;
-                bool aot = false, restoreonclose = false, closetree = false, singleinstance = true;
+                bool aot = false, restoreonclose = false, closetree = false, singleinstance = true, skipclose = false;
                 try
                 {
                     // attempt to read parameters added later
@@ -365,6 +367,7 @@ namespace multirun
                     restoreonclose = bool.Parse(level1Element.Attribute("restoreonclose").Value.ToString());
                     closetree = bool.Parse(level1Element.Attribute("closetree").Value.ToString());
                     singleinstance = bool.Parse(level1Element.Attribute("singleinstance").Value.ToString());
+                    skipclose = bool.Parse(level1Element.Attribute("skipclose").Value.ToString());
                 }
                 catch { }
                 listbox.Items.Add(new ListItem(
@@ -375,7 +378,7 @@ namespace multirun
                     int.Parse(level1Element.Attribute("priority").Value.ToString()),
                     bool.Parse(level1Element.Attribute("waitstart").Value.ToString()),
                     int.Parse(level1Element.Attribute("waitmore").Value.ToString()),
-                    anexe, ancmdline, aot, restoreonclose, closetree, singleinstance
+                    anexe, ancmdline, aot, restoreonclose, closetree, singleinstance, skipclose
                     ), bool.Parse(level1Element.Attribute("enabled").Value.ToString()));
             }
         }
@@ -499,6 +502,10 @@ namespace multirun
             itemAttribute.Value = item.SingleInstance.ToString();
             itemNode.Attributes.Append(itemAttribute);
 
+            itemAttribute = doc.CreateAttribute("skipclose");
+            itemAttribute.Value = item.SkipClose.ToString();
+            itemNode.Attributes.Append(itemAttribute);
+
             return itemNode;
         }
 
@@ -544,7 +551,7 @@ namespace multirun
             for (int i = lbx1.Items.Count - 1; i >= 0; i--)
             {
                 ListItem item = (ListItem)lbx1.Items[i];
-                if (item.Enabled)
+                if (item.Enabled && !item.SkipClose)
                 {
                     SetStatusText($"Close [{i + 1}/{lbx1.Items.Count}] {item.File}");
 
@@ -1058,6 +1065,8 @@ namespace multirun
                 chbxSingleInstance.Checked = (listbox.SelectedItem as ListItem).SingleInstance;
                 textBoxSingleInstance.Enabled = true;
                 UiUpdateSingleInstanceText((ListItem)listbox.SelectedItem);
+                chbxSkipClose.Enabled = true;
+                chbxSkipClose.Checked = ((ListItem)listbox.SelectedItem).SkipClose;
 
                 button3.Enabled = true;
             }
@@ -1091,6 +1100,8 @@ namespace multirun
                 textBoxSingleInstance.BackColor = SystemColors.Control;
                 textBoxSingleInstance.Enabled = false;
                 toolTip1.SetToolTip(textBoxSingleInstance, string.Empty);
+                chbxSkipClose.Checked = false;
+                chbxSkipClose.Enabled = false;
 
                 button3.Enabled = false;
             }
@@ -1267,6 +1278,12 @@ namespace multirun
         {
             CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
             ((ListItem)listbox.SelectedItem).CloseTree = chbxCloseTree.Checked;
+        }
+        //==============================================================
+        private void chbxSkip_Click(object sender, EventArgs e)
+        {
+            CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
+            ((ListItem)listbox.SelectedItem).SkipClose = chbxSkipClose.Checked;
         }
         //==============================================================
         private void chbxSingleInstance_Click(object sender, EventArgs e)
