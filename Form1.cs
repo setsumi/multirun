@@ -205,6 +205,18 @@ namespace multirun
         [DllImport("user32.dll", EntryPoint = "SetWindowPos")]
         static extern IntPtr SetWindowPos(IntPtr hWnd, ulong hWndInsertAfter, int x, int Y, int cx, int cy, uint wFlags);
 
+        //==============================================================
+        static bool IsWindowOverlapped(IntPtr hWnd)
+        {
+            IntPtr style = GetWindowLong(hWnd, (int)GWL.GWL_STYLE);
+            if (((UInt64)style & (UInt64)WindowStyles.WS_POPUP) != 0) { }
+            else if (((UInt64)style & (UInt64)WindowStyles.WS_CHILD) != 0) { }
+            else // WS_OVERLAPPED
+            {
+                return true;
+            }
+            return false;
+        }
 
         //==============================================================
         public class ListItem
@@ -224,6 +236,7 @@ namespace multirun
             public bool CloseTree = false;
             public bool SingleInstance = true;
             public bool SkipClose = false;
+            public bool MinimizeDelayed = false;
 
             public ListItem(string file)
             {
@@ -231,7 +244,7 @@ namespace multirun
             }
             public ListItem(string file, bool minimize, int timewait, bool enabled, int priority,
                 bool waitstart, int waitmore, string anexe, string ancmdline, bool alwaysontop,
-                bool restoreonclose, bool closetree, bool singleinstance, bool skipclose)
+                bool restoreonclose, bool closetree, bool singleinstance, bool skipclose, bool minimizedelayed)
             {
                 this.File = file;
                 this.Minimize = minimize;
@@ -247,6 +260,7 @@ namespace multirun
                 this.CloseTree = closetree;
                 this.SingleInstance = singleinstance;
                 this.SkipClose = skipclose;
+                this.MinimizeDelayed = minimizedelayed;
             }
 
             public override string ToString() { return File; }
@@ -358,6 +372,7 @@ namespace multirun
             {
                 string anexe = string.Empty, ancmdline = string.Empty;
                 bool aot = false, restoreonclose = false, closetree = false, singleinstance = true, skipclose = false;
+                bool minimizedelayed = false;
                 try
                 {
                     // attempt to read parameters added later
@@ -368,6 +383,7 @@ namespace multirun
                     closetree = bool.Parse(level1Element.Attribute("closetree").Value.ToString());
                     singleinstance = bool.Parse(level1Element.Attribute("singleinstance").Value.ToString());
                     skipclose = bool.Parse(level1Element.Attribute("skipclose").Value.ToString());
+                    minimizedelayed = bool.Parse(level1Element.Attribute("minimizedelayed").Value.ToString());
                 }
                 catch { }
                 listbox.Items.Add(new ListItem(
@@ -378,7 +394,8 @@ namespace multirun
                     int.Parse(level1Element.Attribute("priority").Value.ToString()),
                     bool.Parse(level1Element.Attribute("waitstart").Value.ToString()),
                     int.Parse(level1Element.Attribute("waitmore").Value.ToString()),
-                    anexe, ancmdline, aot, restoreonclose, closetree, singleinstance, skipclose
+                    anexe, ancmdline, aot, restoreonclose, closetree, singleinstance,
+                    skipclose, minimizedelayed
                     ), bool.Parse(level1Element.Attribute("enabled").Value.ToString()));
             }
         }
@@ -504,6 +521,10 @@ namespace multirun
 
             itemAttribute = doc.CreateAttribute("skipclose");
             itemAttribute.Value = item.SkipClose.ToString();
+            itemNode.Attributes.Append(itemAttribute);
+
+            itemAttribute = doc.CreateAttribute("minimizedelayed");
+            itemAttribute.Value = item.MinimizeDelayed.ToString();
             itemNode.Attributes.Append(itemAttribute);
 
             return itemNode;
@@ -824,6 +845,8 @@ namespace multirun
             proc.StartInfo.FileName = path;
             proc.StartInfo.WorkingDirectory = workdir;
             proc.StartInfo.Arguments = args;
+            if (item.Minimize)
+                proc.StartInfo.WindowStyle = ProcessWindowStyle.Minimized;
             proc.Start();
             try
             {
@@ -857,12 +880,15 @@ namespace multirun
                 try { proc.PriorityClass = PriorityConvert(item.Priority); }
                 catch { }
 
-                if (proc.MainWindowHandle != IntPtr.Zero)
+                if (item.AlwaysOnTop || item.MinimizeDelayed)
                 {
-                    if (item.AlwaysOnTop)
-                        SetWindowPos(proc.MainWindowHandle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-                    if (item.Minimize)
-                        ShowWindow(proc.MainWindowHandle, SW_MINIMIZE);
+                    foreach (var handle in EnumerateProcessWindowHandles(proc.Id, false))
+                    {
+                        if (item.AlwaysOnTop && IsWindowVisible(handle))
+                            SetWindowPos(handle, HWND_TOPMOST, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+                        if (item.MinimizeDelayed && IsWindowVisible(handle) && IsWindowOverlapped(handle))
+                            ShowWindow(handle, SW_MINIMIZE);
+                    }
                 }
             }
             else
@@ -1039,6 +1065,8 @@ namespace multirun
             {
                 chbx1.Enabled = true;
                 chbx1.Checked = ((ListItem)listbox.SelectedItem).Minimize;
+                chbxMinimizeDelayed.Enabled = true;
+                chbxMinimizeDelayed.Checked = ((ListItem)listbox.SelectedItem).MinimizeDelayed;
                 nud1.Enabled = true;
                 nud1.Value = ((ListItem)listbox.SelectedItem).Timewait;
                 cmbbx1.Enabled = true;
@@ -1074,6 +1102,8 @@ namespace multirun
             {
                 chbx1.Checked = false;
                 chbx1.Enabled = false;
+                chbxMinimizeDelayed.Checked = false;
+                chbxMinimizeDelayed.Enabled = false;
                 nud1.Value = 0;
                 nud1.Enabled = false;
                 cmbbx1.SelectedIndex = 3;
@@ -1204,6 +1234,12 @@ namespace multirun
         {
             CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
             ((ListItem)listbox.SelectedItem).Minimize = chbx1.Checked;
+        }
+        //==============================================================
+        private void chbxMinimizeDelayed_Click(object sender, EventArgs e)
+        {
+            CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
+            ((ListItem)listbox.SelectedItem).MinimizeDelayed = chbxMinimizeDelayed.Checked;
         }
         //==============================================================
         private void nud1_ValueChanged(object sender, EventArgs e)

@@ -33,6 +33,7 @@
             this.btnRunAll = new System.Windows.Forms.Button();
             this.chbx1 = new System.Windows.Forms.CheckBox();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.chbxMinimizeDelayed = new System.Windows.Forms.CheckBox();
             this.chbxSkipClose = new System.Windows.Forms.CheckBox();
             this.textBoxSingleInstance = new System.Windows.Forms.TextBox();
             this.chbxSingleInstance = new System.Windows.Forms.CheckBox();
@@ -112,7 +113,7 @@
             this.chbx1.Size = new System.Drawing.Size(66, 17);
             this.chbx1.TabIndex = 1;
             this.chbx1.Text = "Minimize";
-            this.toolTip1.SetToolTip(this.chbx1, "Recommended increasing \"Wait some more\" time.");
+            this.toolTip1.SetToolTip(this.chbx1, "Start minimized");
             this.chbx1.UseVisualStyleBackColor = true;
             this.chbx1.Click += new System.EventHandler(this.chbx1_Click);
             // 
@@ -121,6 +122,7 @@
             this.groupBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Bottom) 
             | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
+            this.groupBox1.Controls.Add(this.chbxMinimizeDelayed);
             this.groupBox1.Controls.Add(this.chbxSkipClose);
             this.groupBox1.Controls.Add(this.textBoxSingleInstance);
             this.groupBox1.Controls.Add(this.chbxSingleInstance);
@@ -147,6 +149,21 @@
             this.groupBox1.Text = "Drag&&drop shortcuts/exe here, Drag = rearrange, Del = remove, Ctrl+Enter = run s" +
     "elected";
             // 
+            // chbxMinimizeDelayed
+            // 
+            this.chbxMinimizeDelayed.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.chbxMinimizeDelayed.AutoSize = true;
+            this.chbxMinimizeDelayed.CheckAlign = System.Drawing.ContentAlignment.MiddleRight;
+            this.chbxMinimizeDelayed.Enabled = false;
+            this.chbxMinimizeDelayed.Location = new System.Drawing.Point(82, 225);
+            this.chbxMinimizeDelayed.Name = "chbxMinimizeDelayed";
+            this.chbxMinimizeDelayed.Size = new System.Drawing.Size(63, 17);
+            this.chbxMinimizeDelayed.TabIndex = 2;
+            this.chbxMinimizeDelayed.Text = "delayed";
+            this.toolTip1.SetToolTip(this.chbxMinimizeDelayed, "Minimize after \"Wait some more\" delay");
+            this.chbxMinimizeDelayed.UseVisualStyleBackColor = true;
+            this.chbxMinimizeDelayed.Click += new System.EventHandler(this.chbxMinimizeDelayed_Click);
+            // 
             // chbxSkipClose
             // 
             this.chbxSkipClose.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
@@ -169,7 +186,7 @@
             this.textBoxSingleInstance.Name = "textBoxSingleInstance";
             this.textBoxSingleInstance.ReadOnly = true;
             this.textBoxSingleInstance.Size = new System.Drawing.Size(308, 20);
-            this.textBoxSingleInstance.TabIndex = 13;
+            this.textBoxSingleInstance.TabIndex = 14;
             // 
             // chbxSingleInstance
             // 
@@ -181,7 +198,7 @@
             this.chbxSingleInstance.Location = new System.Drawing.Point(9, 319);
             this.chbxSingleInstance.Name = "chbxSingleInstance";
             this.chbxSingleInstance.Size = new System.Drawing.Size(98, 17);
-            this.chbxSingleInstance.TabIndex = 12;
+            this.chbxSingleInstance.TabIndex = 13;
             this.chbxSingleInstance.Text = "Single instance";
             this.toolTip1.SetToolTip(this.chbxSingleInstance, "Don\'t run if already running");
             this.chbxSingleInstance.UseVisualStyleBackColor = true;
@@ -195,7 +212,7 @@
             this.chbxCloseTree.Location = new System.Drawing.Point(335, 345);
             this.chbxCloseTree.Name = "chbxCloseTree";
             this.chbxCloseTree.Size = new System.Drawing.Size(113, 17);
-            this.chbxCloseTree.TabIndex = 16;
+            this.chbxCloseTree.TabIndex = 18;
             this.chbxCloseTree.Text = "Close process tree";
             this.toolTip1.SetToolTip(this.chbxCloseTree, "Close also the process descendants tree");
             this.chbxCloseTree.UseVisualStyleBackColor = true;
@@ -209,7 +226,7 @@
             this.chbxRestoreOnClose.Location = new System.Drawing.Point(335, 322);
             this.chbxRestoreOnClose.Name = "chbxRestoreOnClose";
             this.chbxRestoreOnClose.Size = new System.Drawing.Size(106, 17);
-            this.chbxRestoreOnClose.TabIndex = 15;
+            this.chbxRestoreOnClose.TabIndex = 16;
             this.chbxRestoreOnClose.Text = "Restore on close";
             this.toolTip1.SetToolTip(this.chbxRestoreOnClose, "If minimized restore window before closing");
             this.chbxRestoreOnClose.UseVisualStyleBackColor = true;
@@ -223,7 +240,7 @@
             this.chbx2.Location = new System.Drawing.Point(233, 296);
             this.chbx2.Name = "chbx2";
             this.chbx2.Size = new System.Drawing.Size(96, 17);
-            this.chbx2.TabIndex = 11;
+            this.chbx2.TabIndex = 12;
             this.chbx2.Text = "Always on Top";
             this.toolTip1.SetToolTip(this.chbx2, "Make window always on top.\r\nRecommended increasing \"Wait some more\" time.");
             this.chbx2.UseVisualStyleBackColor = true;
@@ -240,7 +257,7 @@
             this.groupBox2.Location = new System.Drawing.Point(335, 221);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(198, 95);
-            this.groupBox2.TabIndex = 14;
+            this.groupBox2.TabIndex = 15;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "Close another process";
             // 
@@ -293,7 +310,7 @@
             this.label5.Location = new System.Drawing.Point(6, 296);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(105, 13);
-            this.label5.TabIndex = 9;
+            this.label5.TabIndex = 10;
             this.label5.Text = "Wait some more (ms)";
             this.toolTip1.SetToolTip(this.label5, "Recommended for \"Minimize\" and \"Always on Top\" options");
             // 
@@ -304,7 +321,7 @@
             this.nud2.Location = new System.Drawing.Point(117, 294);
             this.nud2.Name = "nud2";
             this.nud2.Size = new System.Drawing.Size(75, 20);
-            this.nud2.TabIndex = 10;
+            this.nud2.TabIndex = 11;
             this.toolTip1.SetToolTip(this.nud2, "Recommended for \"Minimize\" and \"Always on Top\" options");
             this.nud2.ValueChanged += new System.EventHandler(this.nud2_ValueChanged);
             // 
@@ -316,7 +333,7 @@
             this.label3.Location = new System.Drawing.Point(271, 262);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(58, 13);
-            this.label3.TabIndex = 8;
+            this.label3.TabIndex = 9;
             this.label3.Text = "-1 = infinite";
             // 
             // rbtn2
@@ -327,7 +344,7 @@
             this.rbtn2.Location = new System.Drawing.Point(10, 271);
             this.rbtn2.Name = "rbtn2";
             this.rbtn2.Size = new System.Drawing.Size(101, 17);
-            this.rbtn2.TabIndex = 5;
+            this.rbtn2.TabIndex = 6;
             this.rbtn2.TabStop = true;
             this.rbtn2.Text = "Wait until Exited";
             this.rbtn2.UseVisualStyleBackColor = true;
@@ -341,7 +358,7 @@
             this.rbtn1.Location = new System.Drawing.Point(10, 248);
             this.rbtn1.Name = "rbtn1";
             this.rbtn1.Size = new System.Drawing.Size(108, 17);
-            this.rbtn1.TabIndex = 4;
+            this.rbtn1.TabIndex = 5;
             this.rbtn1.TabStop = true;
             this.rbtn1.Text = "Wait until Loaded";
             this.rbtn1.UseVisualStyleBackColor = true;
@@ -399,7 +416,7 @@
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(506, 174);
+            this.tabPage2.Size = new System.Drawing.Size(521, 174);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Run on Close";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -412,7 +429,7 @@
             this.lbx2.FormattingEnabled = true;
             this.lbx2.Location = new System.Drawing.Point(3, 3);
             this.lbx2.Name = "lbx2";
-            this.lbx2.Size = new System.Drawing.Size(485, 169);
+            this.lbx2.Size = new System.Drawing.Size(515, 169);
             this.lbx2.TabIndex = 1;
             this.lbx2.ItemCheck += new System.Windows.Forms.ItemCheckEventHandler(this.lbx1_ItemCheck);
             this.lbx2.SelectedIndexChanged += new System.EventHandler(this.lbx1_SelectedIndexChanged);
@@ -431,20 +448,20 @@
             this.cmbbx1.DropDownStyle = System.Windows.Forms.ComboBoxStyle.DropDownList;
             this.cmbbx1.Enabled = false;
             this.cmbbx1.FormattingEnabled = true;
-            this.cmbbx1.Location = new System.Drawing.Point(158, 225);
+            this.cmbbx1.Location = new System.Drawing.Point(211, 225);
             this.cmbbx1.Name = "cmbbx1";
             this.cmbbx1.Size = new System.Drawing.Size(106, 21);
-            this.cmbbx1.TabIndex = 3;
+            this.cmbbx1.TabIndex = 4;
             this.cmbbx1.SelectedIndexChanged += new System.EventHandler(this.cmbbx1_SelectedIndexChanged);
             // 
             // label2
             // 
             this.label2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(114, 226);
+            this.label2.Location = new System.Drawing.Point(167, 226);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(38, 13);
-            this.label2.TabIndex = 2;
+            this.label2.TabIndex = 3;
             this.label2.Text = "Priority";
             // 
             // label1
@@ -454,7 +471,7 @@
             this.label1.Location = new System.Drawing.Point(114, 261);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(76, 13);
-            this.label1.TabIndex = 6;
+            this.label1.TabIndex = 7;
             this.label1.Text = "> Timeout (ms)";
             // 
             // nud1
@@ -464,7 +481,7 @@
             this.nud1.Location = new System.Drawing.Point(196, 260);
             this.nud1.Name = "nud1";
             this.nud1.Size = new System.Drawing.Size(69, 20);
-            this.nud1.TabIndex = 7;
+            this.nud1.TabIndex = 8;
             this.nud1.ValueChanged += new System.EventHandler(this.nud1_ValueChanged);
             // 
             // menu1
@@ -707,6 +724,7 @@
         private System.Windows.Forms.TextBox textBoxSingleInstance;
         private System.Windows.Forms.Timer tmrStatusMsg;
         private System.Windows.Forms.CheckBox chbxSkipClose;
+        private System.Windows.Forms.CheckBox chbxMinimizeDelayed;
     }
 }
 
