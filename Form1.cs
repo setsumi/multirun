@@ -1374,7 +1374,11 @@ namespace multirun
         {
             CheckedListBox listbox = (lbx1.Visible) ? lbx1 : lbx2;
             if (listbox.SelectedItem != null)
-                RunIt((ListItem)listbox.SelectedItem);
+            {
+                ListItem item = listbox.SelectedItem as ListItem;
+                FlashStatusMessage($"Run: {item.File}");
+                RunIt(item);
+            }
         }
 
         //==============================================================
@@ -1487,9 +1491,11 @@ namespace multirun
         //==============================================================
         private void FlashStatusMessage(string msg)
         {
-            statusTextBackup = toolStripStatusLabel1.Text;
+            if (!tmrStatusMsg.Enabled) statusTextBackup = toolStripStatusLabel1.Text;
             toolStripStatusLabel1.Text = msg;
+            toolStripStatusLabel1.ForeColor = SystemColors.ControlText;
             tmrStatusMsg.Tag = 0;
+            tmrStatusMsg.Stop();
             tmrStatusMsg.Start();
         }
 
