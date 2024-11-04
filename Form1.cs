@@ -1046,14 +1046,27 @@ namespace multirun
         private void lbx1_KeyDown(object sender, KeyEventArgs e)
         {
             CheckedListBox listbox = (CheckedListBox)sender;
-            if (e.KeyCode == Keys.Delete)
+            if (e.KeyCode == Keys.Delete && e.Modifiers == Keys.None) // Delete item
             {
                 if (listbox.SelectedItem != null)
                     listbox.Items.Remove(listbox.SelectedItem);
             }
-            else if (e.KeyCode == Keys.Enter && e.Modifiers == Keys.Control)
+            else if (e.KeyCode == Keys.Enter && e.Modifiers == Keys.Control) // Run selected
             {
                 button3_Click(null, null);
+            }
+            else if (e.KeyCode == Keys.F12 && e.Modifiers == Keys.None) // Open folder
+            {
+                if (listbox.SelectedItem != null)
+                {
+                    ListItem item = listbox.SelectedItem as ListItem;
+                    var psi = new ProcessStartInfo
+                    {
+                        FileName = Path.GetDirectoryName(item.File),
+                        UseShellExecute = true
+                    };
+                    Process.Start(psi);
+                }
             }
         }
 

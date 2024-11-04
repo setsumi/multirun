@@ -147,7 +147,7 @@
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Drag&&drop shortcuts/exe here, Drag = rearrange, Del = remove, Ctrl+Enter = run s" +
-    "elected";
+    "elected, F12 = open folder";
             // 
             // chbxMinimizeDelayed
             // 
